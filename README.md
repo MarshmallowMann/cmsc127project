@@ -13,5 +13,5 @@
 
 # How to Create a Python Virtual Environment (windows)
 1. Open the command prompt at the root of the project.
-2. Create a new virtual environment using `python -m venv venv`
-3. Activate the virtual environment using `venv\Scripts\activate.bat`
+2. Create a new virtual environment using `python -m venv env`
+3. Activate the virtual environment using `env\Scripts\activate.bat`
