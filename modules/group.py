@@ -1,14 +1,17 @@
-def addGroup():
-    return 0
+import mariadb as db
 
 
-def deleteGroup():
-    return 0
+def addGroup(cursor: db.Cursor) -> None:
+    return None
 
 
-def searchGroup():
-    return 0
+def deleteGroup(cursor: db.Cursor) -> None:
+    return None
 
 
-def updateGroup():
-    return 0
+def searchGroup(cursor: db.Cursor) -> None:
+    return None
+
+
+def updateGroup(cursor: db.Cursor) -> None:
+    return None

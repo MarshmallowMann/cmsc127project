@@ -1,14 +1,17 @@
-def addExpense():
-    return 0
+import mariadb as db
 
 
-def deleteExpense():
-    return 0
+def addExpense(cursor: db.Cursor) -> None:
+    return None
 
 
-def searchExpense():
-    return 0
+def deleteExpense(cursor: db.Cursor) -> None:
+    return None
 
 
-def updateExpense():
-    return 0
+def searchExpense(cursor: db.Cursor) -> None:
+    return None
+
+
+def updateExpense(cursor: db.Cursor) -> None:
+    return None
