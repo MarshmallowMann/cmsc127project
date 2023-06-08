@@ -3,6 +3,7 @@ import sys
 import os
 from dotenv import load_dotenv
 import modules.group as group
+import modules.reports as report
 
 """
 Given the description and the details below, come up with flexible and realistic database
@@ -24,10 +25,15 @@ def main():
         sys.exit(1)
 
     cur = conn.cursor()
-    # group.add_group(cur, conn)
-    # group.delete_group(cur, conn)
-    # group.search_group(cur, conn)
-    group.get_groups(cur, conn)
+    # group.addUser(cur, conn)
+    # group.addGroup(cur, conn)
+    group.deleteGroup(cur, conn)
+    # group.searchGroup(cur, conn)
+    # group.getGroups(cur, conn)
+    # group.updateGroup(cur, conn)
+
+    # report.viewAllGroups(cur)
+    # report.viewAllGroupsWithBalance(cur)
 
 
 """
