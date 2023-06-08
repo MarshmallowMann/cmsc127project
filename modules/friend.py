@@ -130,7 +130,6 @@ def get_float_input(prompt: str) -> int:
 def print_users(friends: list) -> None:
     # Convert array of tuples to array of lists
     # friends = [list(friend) for friend in friends]
-    print(friends)
     print("=====================================")
     print("\t\tFriends")
     print("=====================================")
