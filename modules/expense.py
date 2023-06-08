@@ -23,7 +23,7 @@ def getUserCount(cursor: db.Cursor) -> int:
     user_count = cursor.fetchone()[0]
     return user_count
 
-def get_user_type():
+def get_user_is_lender():
     user_is_lender = None
     while user_is_lender not in [1, 2]:
         user_is_lender = input("\nAre you a lender or a borrower?\n[1]Lender\n[2]Borrower\nChoice: ")
@@ -148,6 +148,25 @@ def createGroupTransaction(cursor: db.Cursor) -> None:
     transaction_amount = askAmount()
     transaction_date = getDate()
     transaction_type = askTransactionType()
+    if transaction_type == 'loan':
+        isLoan = 1
+        userIsLender = get_user_is_lender()                 
+        if userIsLender==1: # user is a lender
+            lender = 1
+            # ask user to select a borrower
+            print("Choose a borrower:")
+            getUsers(cursor)  # get the user count using the getUsers() function
+            user_id = chooseFriend(getUserCount(cursor))  # get the chosen friend using the chooseFriend() function
+            
+            
+            
+        else: # user is a borrower
+            
+            
+            
+
+    else: # transaction_type == 'settlement'
+        
     
 # [] Group Loan
 # INSERT INTO transaction(transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, isGroupLoan, user_id, group_id)
@@ -177,7 +196,7 @@ def addExpense(cursor: db.Cursor, connection: db.Connection) -> None:
                         isPaid = 0 # set to false
                     
                         # ask user if borrower or lender
-                        userIsLender = get_user_type()
+                        userIsLender = get_user_is_lender()
                                     
                         if userIsLender==1: # user is a lender
                             lender = 1
