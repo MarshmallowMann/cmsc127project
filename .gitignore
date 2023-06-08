@@ -237,4 +237,8 @@ fabric.properties
 # Local History for Visual Studio Code
 .history/
 
+# Local Test Files
+test_sean.py
+test.py
+
 # End of https://mrkandreev.name/snippets/gitignore-generator/#venv,Python,dotenv,PyCharm,VisualStudioCode
