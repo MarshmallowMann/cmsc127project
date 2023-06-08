@@ -15,3 +15,13 @@
 1. Open the command prompt at the root of the project.
 2. Create a new virtual environment using `python -m venv env`
 3. Activate the virtual environment using `env\Scripts\activate.bat`
+
+
+# Setting Environment Variables
+1. Create a new file named `.env` at the root of the project.
+2. Add the following lines to the file:
+```
+PASSWORD={your database password}
+```
+3. Replace `{your database password}` with your database password.
+4. Save the file.
