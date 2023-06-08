@@ -71,7 +71,7 @@ def get_float_input(prompt: str) -> int:
 def addIsCreatedBy(cursor: db.Cursor, connection: db.Connection, transaction_id, user_id, group_id) -> None:
     try:
         # if group transaction
-        statement = "INSERT INTO is_created_by (transaction_id, user_id, group_id) VALUES (%d, %d, %d)"
+        statement = "INSERT INTO is_created_by(transaction_id, user_id, group_id) VALUES (%d, %d, %d)"
         data = (transaction_id, user_id, group_id)
         cursor.execute(statement, data)
         connection.commit()
@@ -93,7 +93,15 @@ def getTransactionCount(cursor: db.Cursor) -> int:
     statement = "SELECT COUNT(DISTINCT transaction_id) FROM transaction"
     cursor.execute(statement)
     transaction_count = cursor.fetchone()[0]
+    print("Transaction Count is ", transaction_count)
     return transaction_count
+
+def getLatestTransactionID(cursor: db.Cursor) -> int:
+    cursor.execute("SELECT MAX(transaction_id) AS latest_transaction_id FROM transaction")
+    result = cursor.fetchone()
+    latest_transaction_id = result[0]
+    print(f"Latest transaction ID: {latest_transaction_id}")
+    return latest_transaction_id
 
 def userLendTransaction(cursor: db.Cursor, transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, user_id) -> None:
     try:
@@ -133,7 +141,7 @@ def addExpense(cursor: db.Cursor, connection: db.Connection) -> None:
                         transaction_type = "loan" # transaction type is a loan
                         isLoan = 1 # set to true
                         isPaid = 0 # set to false
-                        
+                    
                         # ask user if borrower or lender
                         userIsLender = get_user_type()
                                     
@@ -144,7 +152,8 @@ def addExpense(cursor: db.Cursor, connection: db.Connection) -> None:
                             getUsers(cursor)  # get the user count using the getUsers() function
                             user_id = chooseFriend(getUserCount(cursor))  # get the chosen friend using the chooseFriend() function
                             userLendTransaction(cursor, transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, user_id)
-                            addIsMadeBy(cursor, {getTransactionCount}, user_id) # is_made_by to create connection between transaction and user 
+                            transaction_id = getLatestTransactionID(cursor)
+                            addIsMadeBy(cursor, transaction_id, user_id) # is_made_by to create connection between transaction and user 
 
                         else: # user is a borrower
                             user_id = 1 # user (with user_id 1) is the borrower

@@ -242,3 +242,4 @@ test_sean.py
 test.py
 
 # End of https://mrkandreev.name/snippets/gitignore-generator/#venv,Python,dotenv,PyCharm,VisualStudioCode
+modules/__pycache__/expense.cpython-310.pyc
