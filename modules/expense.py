@@ -302,7 +302,28 @@ def addExpense(cursor: db.Cursor, connection: db.Connection) -> None:
     return None
 
 
-def delete_expense(cursor: db.Cursor) -> None:
+def delete_expense(cursor: db.Cursor, conn: db.Connection) -> None:
+
+    try:
+        cursor.execute("SELECT * FROM transaction WHERE user_id = 1;")
+        expenses = cursor.fetchall()
+    except db.Error as e:
+        print(f"Error fetching data: {e}")
+        return None
+
+    print_expenses(expenses)
+
+    transaction_id = get_int_input(
+        "Enter the ID of the paid transaction to delete: ")
+
+    try:
+        cursor.execute(
+            "DELETE FROM transaction WHERE transaction_id = ? AND isPaid = true;", (transaction_id,))
+        conn.commit()
+        print(f"Deleted {cursor.rowcount} transaction(s).")
+    except db.Error as e:
+        print(f"Error deleting transaction: {e}")
+
     return None
 
 
@@ -334,6 +355,17 @@ def print_loans(loans: list) -> None:
     print("\t\tLoans")
     print("=====================================")
     print(tabulate(loans, headers=[
+        "Transaction ID", "Transaction Date", "Amount Remaining"
+    ], tablefmt="rounded_grid"))
+    print("=====================================")
+    return None
+
+
+def print_expenses(expenses: list) -> None:
+    print("=====================================")
+    print("\t\tExpenses")
+    print("=====================================")
+    print(tabulate(expenses, headers=[
         "Transaction ID", "Transaction Date", "Amount Remaining"
     ], tablefmt="rounded_grid"))
     print("=====================================")
