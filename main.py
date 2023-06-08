@@ -102,7 +102,7 @@ def print_expense_menu(cur: db.Cursor, con: db.Connection) -> None:
     choice = get_int_input("Enter your choice: ")
 
     if choice == 1:
-        expense.addExpense(cur)
+        expense.addExpense(cur, con)
     elif choice == 2:
         expense.deleteExpense(cur)
     elif choice == 3:

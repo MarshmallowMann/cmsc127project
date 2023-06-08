@@ -1,5 +1,6 @@
 import mariadb as db
 from datetime import date
+from tabulate import tabulate
 
 def addExpense(cursor: db.Cursor, conn: db.Connection) -> None:
     return None
@@ -96,13 +97,6 @@ def getTransactionCount(cursor: db.Cursor) -> int:
     print("Transaction Count is ", transaction_count)
     return transaction_count
 
-def getLatestTransactionID(cursor: db.Cursor) -> int:
-    cursor.execute("SELECT MAX(transaction_id) AS latest_transaction_id FROM transaction")
-    result = cursor.fetchone()
-    latest_transaction_id = result[0]
-    print(f"Latest transaction ID: {latest_transaction_id}")
-    return latest_transaction_id
-
 def userLendTransaction(cursor: db.Cursor, transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, user_id) -> None:
     try:
         statement = "INSERT INTO transaction(transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, user_id) VALUES (%d, %s,%s,%d,%d,%d,%d)"
@@ -112,6 +106,56 @@ def userLendTransaction(cursor: db.Cursor, transaction_amount, transaction_date,
     except db.Error as e:
         print(f"[USER LEND TRANSACTION] Error adding transaction to the database: {e}")
 
+
+def updateUserBalance(cursor: db.Cursor, user_id, transaction_amount) -> None:
+    try:
+        statement = "UPDATE user SET balance = balance + %d WHERE user_id = %d"
+        data = (transaction_amount, user_id)
+        cursor.execute(statement, data)
+        print("[USER UPDATE BALANCE] Successfully updated user (borrower) balance")
+    except db.Error as e:
+        print(f"[USER UPDATE BALANCE] Error updating user (borrower) balance: {e}")
+         
+def askAmount() -> float:
+    transaction_amount = None
+    while transaction_amount is None or not (1 <= transaction_amount <= 999999.99):
+        try:
+            transaction_amount = float(input("\nInput transaction amount: "))
+            if not (1 <= transaction_amount <= 999999.99):
+                print("\nInvalid input. Please enter a value between 1 and 999999.99.\n")
+        except ValueError:
+            print("\nInvalid input. Please enter a valid number.\n")
+    return transaction_amount
+       
+def getDate() -> str:
+    today = date.today()
+    transaction_date = today.strftime("%Y-%m-%d")
+    return transaction_date
+
+def askTransactionType() -> str:
+    transaction_type = None
+    while transaction_type not in ['1','2']: # 1 = loan, 2 = settlement
+        transaction_type = input("\nChoose Group Transaction Type:\n[1] Loan\n[2] Settlement\nChoice: ")
+        if transaction_type=='1': # loan
+            transaction_type = 'loan'
+        elif transaction_type=='2': # settlement
+            transaction_type = 'settlement'
+        else:
+            print("\n[ERROR] Invalid Input. Please Choose 1 or 2.\n")
+    return transaction_type
+
+def createGroupTransaction(cursor: db.Cursor) -> None:
+    transaction_amount = askAmount()
+    transaction_date = getDate()
+    transaction_type = askTransactionType()
+    
+# [] Group Loan
+# INSERT INTO transaction(transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, isGroupLoan, user_id, group_id)
+# VALUES(100, '2020-11-12', 'loan', 1, 1, 0, 1, 1, 1);
+
+# [] Group Settlement
+# - User Loan
+
 def addExpense(cursor: db.Cursor, connection: db.Connection) -> None:
     try:
         transaction_creator = None
@@ -119,20 +163,10 @@ def addExpense(cursor: db.Cursor, connection: db.Connection) -> None:
             transaction_creator = input("\nChoose Transaction Creator:\n[1] User\n[2] Group\nChoice: ")
             if transaction_creator=='1': # user transaction
                 # input transaction amount
-                transaction_amount = None
-                while transaction_amount is None or not (1 <= transaction_amount <= 999999.99):
-                    try:
-                        transaction_amount = float(input("\nInput transaction amount: "))
-                        if not (1 <= transaction_amount <= 999999.99):
-                            print("\nInvalid input. Please enter a value between 1 and 999999.99.\n")
-                    except ValueError:
-                        print("\nInvalid input. Please enter a valid number.\n")
-
-                today = date.today()
-                transaction_date = today.strftime("%Y-%m-%d")
+                transaction_amount = askAmount()
+                transaction_date = getDate()
                 
                 transaction_type_choice = None  # Initialize transaction_type with None
-
                 while transaction_type_choice not in ['1', '2']:
                     transaction_type_choice = input("Choose transaction type:\n[1]Loan\n[2]Settlement\nChoice: ")
 
@@ -152,40 +186,57 @@ def addExpense(cursor: db.Cursor, connection: db.Connection) -> None:
                             getUsers(cursor)  # get the user count using the getUsers() function
                             user_id = chooseFriend(getUserCount(cursor))  # get the chosen friend using the chooseFriend() function
                             userLendTransaction(cursor, transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, user_id)
-                            transaction_id = getLatestTransactionID(cursor)
+                            transaction_id = cursor.lastrowid
                             addIsMadeBy(cursor, transaction_id, user_id) # is_made_by to create connection between transaction and user 
-
+                            updateUserBalance(cursor, user_id, transaction_amount) # update user balance of borrower
+                            
+                            
                         else: # user is a borrower
                             user_id = 1 # user (with user_id 1) is the borrower
                             isLoan = 1
                             # ask user to select a lender
                             print("Choose a lender:")
-                            user_count = getUsers(cursor)  # get the user count using the getUsers() function
-                            chosen_friend = chooseFriend(getUserCount(cursor))  # get the chosen friend using the chooseFriend() function
-                    
-                    
+                            getUsers(cursor)  # get the user count using the getUsers() function
+                            lender = chooseFriend(getUserCount(cursor))  # get the chosen friend using the chooseFriend() function
+                            userLendTransaction(cursor, transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, user_id)
+                            transaction_id = cursor.lastrowid
+                            addIsMadeBy(cursor, transaction_id, user_id) # is_made_by to create connection between transaction and user 
+                            updateUserBalance(cursor, user_id, transaction_amount) # update user balance of borrower
+
                     # SETTLEMENT
                     elif transaction_type_choice == '2':
                         transaction_type = "settlement"
+                        # Print all the transactions marked as loans and is not paid yet
+                        print_loans(cursor.fetchall())
+                        try:
+                            cursor.execute(
+                                "SELECT is_made_by.user_id, is_made_by.transaction_id, transaction_amount, transaction_date, lender  FROM transaction NATURAL JOIN is_made_by WHERE isLoan = 1 AND isPaid = 0 AND is_made_by.user_id = 1;");
+                            
+                        except db.Error as e:
+                            print(f"Error retrieving loans from the database: {e}")
+                            return None
+                        
+                        # User selects the loan that user will settle. 
+                        # User will input the transaction_id of the loan that user will settle.
+                        
+                        # Settlement
+                        # loan transaction is paid will be marked as true.
+                        # user balance of the borrower will be updated (balance = balance - transaction_amount)
+                        # user balance of the lender will be updated (balance = balance + transaction_amount)
+                        
+                        
                     else:
                         print("\n[ERROR] Invalid Input. Please Choose 1 or 2.\n")
+            
+            else: # group transaction (transaction_creator == 2)
+                createGroupTransaction(cursor)
 
+
+                
+                
         # create a sample loan transaction with a lender and a borrower(user is the borrower)
         # ask if user is the borrower or the lender
-        
-        
-        # print("transaction_amount: \n", transaction_amount)
-        # print("transaction_date: \n", transaction_date)
-        # print("transaction_type: \n", transaction_type)
-        # print("userIsLender: \n", userIsLender)
 
-        # else # user is a borrower
-        
-        
-        # create a sample group loan transaction with a lender
-        
-        
-        # create a sample settlement transaction with a lender and a borrower
         
         
         
@@ -215,4 +266,12 @@ def searchExpense(cursor: db.Cursor) -> None:
 
 
 def updateExpense(cursor: db.Cursor) -> None:
+    return None
+
+
+def print_loans(loans: list) -> None:
+    print("=====================================")
+    print("\t\tLoans")
+    print(tabulate(loans, tablefmt="rounded_grid"))
+    print("=====================================")
     return None
