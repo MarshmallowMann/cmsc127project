@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 import modules.group as group
 import modules.reports as report
+import modules.expense as expense
 
 """
 Given the description and the details below, come up with flexible and realistic database
@@ -26,9 +27,9 @@ def main():
 
     cur = conn.cursor()
     group.add_group(cur, conn)
-    # group.delete_group(cur, conn)
-    # group.search_group(cur, conn)
-    # group.update_group(cur, conn)
+    group.search_group(cur, conn)
+    group.update_group(cur, conn)
+    group.delete_group(cur, conn)
 
     # report.view_all_expenses_within_month(cur)
     # report.view_all_expenses_made_with_friend(cur)
@@ -37,6 +38,8 @@ def main():
     # report.view_current_balance(cur)
     # report.view_all_groups(cur)
     # report.view_all_groups_with_balance(cur)
+
+    # expense.search_expense(cur)
 
 
 """

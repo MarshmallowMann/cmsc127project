@@ -1,5 +1,6 @@
 import mariadb as db
 from tabulate import tabulate
+import modules.friend as friend
 
 
 def add_group(cursor: db.Cursor, conn: db.Connection) -> None:
@@ -10,6 +11,10 @@ def add_group(cursor: db.Cursor, conn: db.Connection) -> None:
         cursor.execute(
             "INSERT INTO `group`(group_name) VALUES(?);", (group_name,))
         conn.commit()
+
+        cursor.execute("SELECT * FROM user WHERE user.user_id != 1;")
+        friends = cursor.fetchall()
+        friend.print_users(friends)
 
         cursor.execute(
             "SELECT group_id FROM `group` WHERE group_name = ?;", (group_name,))
@@ -51,7 +56,7 @@ def delete_group(cursor: db.Cursor, conn: db.Connection) -> None:
             conn.commit()
             print(f"Deleted {cursor.rowcount} group.")
         except db.Error as e:
-            print(f"Error deleting group: {e}")
+            print(f"Error deleting group from the database: {e}")
 
         return None
 
@@ -70,7 +75,6 @@ def search_group(cursor: db.Cursor, conn: db.Connection) -> None:
         return None
 
     print_groups(groups)
-
     return None
 
 
@@ -92,7 +96,7 @@ def update_group(cursor: db.Cursor, conn: db.Connection) -> None:
         print(f"Updated {cursor.rowcount} group(s).")
 
     except db.Error as e:
-        print(f"Error fetching data: {e}")
+        print(f"Error updating group: {e}")
         return None
 
     return None
@@ -101,46 +105,38 @@ def update_group(cursor: db.Cursor, conn: db.Connection) -> None:
 def add_friend_to_group(cursor: db.Cursor, conn: db.Connection, group_id) -> None:
 
     while True:
-        try:
-            while True:
-                friendToAdd = get_int_input("Enter user id to add to group: ")
+        friendToAdd = get_int_input("Enter user id to add to group: ")
 
-                if friendToAdd == 1:
-                    print("You cannot add yourself to the group\n")
+        if friendToAdd == 1:
+            print("You cannot add yourself to the group\n")
+            continue
+
+        else:
+            try:
+                statement = "INSERT INTO is_part_of(user_id, group_id) VALUES(?, ?);"
+                data = (friendToAdd, group_id)
+                cursor.execute(statement, data)
+
+                statement = "UPDATE `group` SET num_of_members = num_of_members + 1 WHERE group_id = ?;"
+                data = (group_id,)
+                cursor.execute(statement, data)
+                conn.commit()
+
+                anotherFriend = input(
+                    "\nDo you want to add another friend to the group? [y/n]: ")
+
+                if anotherFriend.lower() == "n":
+                    break
+
+                elif anotherFriend.lower() == "y":
                     continue
 
                 else:
-                    try:
-                        statement = "INSERT INTO is_part_of(user_id, group_id) VALUES(?, ?);"
-                        data = (friendToAdd, group_id)
-                        cursor.execute(statement, data)
+                    print("Invalid input.")
+                    break
 
-                        statement = "UPDATE `group` SET num_of_members = num_of_members + 1 WHERE group_id = ?;"
-                        data = (group_id,)
-                        cursor.execute(statement, data)
-                        conn.commit()
-
-                        anotherFriend = input(
-                            "\nDo you want to add another friend to the group? [y/n]: ")
-
-                        if anotherFriend.lower() == "n":
-                            break
-
-                        elif anotherFriend.lower() == "y":
-                            continue
-
-                        else:
-                            print("Invalid input.")
-                            break
-
-                    except db.Error as e:
-                        print(f"Error retrieving users from the database: {e}")
-
-        except ValueError as e:
-            print(f"Error: {e}\n")
-
-        else:
-            break
+            except db.Error as e:
+                print(f"Error adding user to the group: {e}")
 
     return None
 
