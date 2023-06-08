@@ -25,15 +25,18 @@ def main():
         sys.exit(1)
 
     cur = conn.cursor()
-    # group.addUser(cur, conn)
-    # group.addGroup(cur, conn)
-    group.deleteGroup(cur, conn)
-    # group.searchGroup(cur, conn)
-    # group.getGroups(cur, conn)
-    # group.updateGroup(cur, conn)
+    group.add_group(cur, conn)
+    # group.delete_group(cur, conn)
+    # group.search_group(cur, conn)
+    # group.update_group(cur, conn)
 
-    # report.viewAllGroups(cur)
-    # report.viewAllGroupsWithBalance(cur)
+    # report.view_all_expenses_within_month(cur)
+    # report.view_all_expenses_made_with_friend(cur)
+    # report.view_all_expenses_with_group(cur)
+    # report.view_all_friends_with_balance(cur)
+    # report.view_current_balance(cur)
+    # report.view_all_groups(cur)
+    # report.view_all_groups_with_balance(cur)
 
 
 """
