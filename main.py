@@ -127,7 +127,7 @@ def print_friend_menu(cur: db.Cursor, con: db.Connection) -> None:
     choice = get_int_input("Enter your choice: ")
 
     if choice == 1:
-        friend.addFriend(cur)
+        friend.addFriend(cur, con)
     elif choice == 2:
         friend.deleteFriend(cur)
     elif choice == 3:
