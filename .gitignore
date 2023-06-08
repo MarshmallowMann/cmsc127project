@@ -1,10 +1,3 @@
-<<<<<<< HEAD
-/env
-/.vscode
-.env
-/.venv
-/test.py
-=======
 # Virtualenv
 # http://iamzed.com/2009/05/07/a-primer-on-virtualenv/
 .Python
@@ -244,5 +237,8 @@ fabric.properties
 # Local History for Visual Studio Code
 .history/
 
+# Local Test Files
+test_sean.py
+test.py
+
 # End of https://mrkandreev.name/snippets/gitignore-generator/#venv,Python,dotenv,PyCharm,VisualStudioCode
->>>>>>> cc5c85f (feat: created menu.)
