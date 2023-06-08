@@ -75,6 +75,14 @@ CREATE TABLE is_created_by(
     CONSTRAINT iscreatedby_groupid_fk FOREIGN KEY(group_id) REFERENCES `group`(group_id) ON DELETE CASCADE
 );
 
+CREATE TABLE is_made_by(
+    transaction_id INT NOT NULL,
+    user_id INT NOT NULL,
+    PRIMARY KEY(transaction_id, user_id),
+    CONSTRAINT ismadeby_transactionid_fk FOREIGN KEY(transaction_id) REFERENCES transaction(transaction_id) ON DELETE CASCADE,
+    CONSTRAINT ismadeby_userid_fk FOREIGN KEY(user_id) REFERENCES user(user_id) ON DELETE CASCADE,
+);
+
 -- Create a sample Add, delete, search, and update a user;
 INSERT INTO user(username, balance) VALUES('Ilay', 0);
 
