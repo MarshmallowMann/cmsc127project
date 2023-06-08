@@ -80,16 +80,6 @@ def addIsCreatedBy(cursor: db.Cursor, connection: db.Connection, transaction_id,
     except db.Error as e:
         print(f"Error adding is_created_by group transaction to the database: {e}")
 
-def addIsMadeBy(cursor: db.Cursor, transaction_id, user_id) -> None:
-    try:
-        # if user single transaction
-        statement = "INSERT INTO is_made_by(transaction_id, user_id) VALUES (%d, %d)"
-        data = (transaction_id, user_id)
-        cursor.execute(statement, data)
-        print("Successfully added is_made_by single transaction to the database.")
-    except db.Error as e:
-        print(f"Error adding is_made_by single transaction to the database: {e}")
-
 def getTransactionCount(cursor: db.Cursor) -> int:
     statement = "SELECT COUNT(DISTINCT transaction_id) FROM transaction"
     cursor.execute(statement)
@@ -99,7 +89,7 @@ def getTransactionCount(cursor: db.Cursor) -> int:
 
 def userLendTransaction(cursor: db.Cursor, transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, user_id) -> None:
     try:
-        statement = "INSERT INTO transaction(transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, user_id) VALUES (%d, %s,%s,%d,%d,%d,%d)"
+        statement = "INSERT INTO transaction(transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, user_id) VALUES (%s, %s,%s,%s,%s,%s,%s)"
         data = (transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, user_id)
         cursor.execute(statement, data)
         print("[USER LEND TRANSACTION] Successfully added transaction to the database")
@@ -109,7 +99,7 @@ def userLendTransaction(cursor: db.Cursor, transaction_amount, transaction_date,
 
 def updateUserBalance(cursor: db.Cursor, user_id, transaction_amount) -> None:
     try:
-        statement = "UPDATE user SET balance = balance + %d WHERE user_id = %d"
+        statement = "UPDATE user SET balance = balance + %s WHERE user_id = %s"
         data = (transaction_amount, user_id)
         cursor.execute(statement, data)
         print("[USER UPDATE BALANCE] Successfully updated user (borrower) balance")
@@ -132,144 +122,200 @@ def getDate() -> str:
     transaction_date = today.strftime("%Y-%m-%d")
     return transaction_date
 
-def askTransactionType() -> str:
-    transaction_type = None
-    while transaction_type not in ['1','2']: # 1 = loan, 2 = settlement
-        transaction_type = input("\nChoose Group Transaction Type:\n[1] Loan\n[2] Settlement\nChoice: ")
-        if transaction_type=='1': # loan
-            transaction_type = 'loan'
-        elif transaction_type=='2': # settlement
-            transaction_type = 'settlement'
-        else:
-            print("\n[ERROR] Invalid Input. Please Choose 1 or 2.\n")
-    return transaction_type
+def getGroups(cursor: db.Cursor) -> None:
+    try:
+        statement = "SELECT group_name FROM `group`"
+        cursor.execute(statement)
+        print("\n[GROUPS]")
+        # iterate over the users
+        for i, row in enumerate(cursor):
+            groupname = row[0]
+            print(f"[{i+1}] {groupname}") # show all groups 
+    except db.Error as e:
+        print(f"[GET ALL GROUPS] Error retrieving groups from the database: {e}")    
+    
+# def get_data(last_name):
+#     try:
+#         statement = "SELECT first_name, last_name FROM employees WHERE last_name=%s"
+#         data = (last_name,)
+#         cursor.execute(statement, data)
+#         for (first_name, last_name) in cursor:
+#             print(f"Successfully retrieved {first_name}, {last_name}")
+#     except database.Error as e:
+#         print(f"Error retrieving entry from the database: {e}")   
+ 
+def setGroupID(cursor: db.Cursor) -> int:
+    group_id = None
+    while group_id is None:
+        try:
+            group_id = int(input("\nChoice: "))
+            statement = "SELECT group_id FROM `group` WHERE group_id = %d"
+            data = (group_id,)
+            cursor.execute(statement, data)
+            if cursor.fetchone() is None:
+                print("\nInvalid input. Please enter a valid group id.\n")
+                group_id = None
+        except ValueError:
+            print("\nInvalid input. Please enter a valid integer.\n")
+    return group_id
+    
+def chooseGroup(cursor: db.Cursor) -> int:
+    print("Choose a group to transact with:\n")
+    getGroups(cursor)
+    group_id = setGroupID(cursor)
+    return group_id
 
+# def get_data(last_name):
+#     try:
+#         statement = "SELECT first_name, last_name FROM employees WHERE last_name=%s"
+#         data = (last_name,)
+#         cursor.execute(statement, data)
+#         for (first_name, last_name) in cursor:
+#             print(f"Successfully retrieved {first_name}, {last_name}")
+#     except database.Error as e:
+#         print(f"Error retrieving entry from the database: {e}")   
+
+def getGroupMembers(cursor: db.Cursor, group_id) -> list:
+    try:
+        statement = "SELECT user_id FROM is_part_of WHERE group_id = %d"
+        data = (group_id,)
+        cursor.execute(statement, data)
+        members = []
+        for row in cursor:
+            members.append(row[0])
+            
+        print(f"Successfully retrieved group members from the database.")
+        return members
+    except db.Error as e:
+        print(f"[GET GROUP MEMBERS] Error retrieving group members from the database: {e}")
+
+def getMemberCount(cursor: db.Cursor, group_id: int) -> int:
+    try:
+        statement = "SELECT num_of_members FROM `group` WHERE group_id = %s"
+        data = (group_id,)
+        cursor.execute(statement, data)
+        result = cursor.fetchone()
+        num_of_members = result[0]
+        return num_of_members
+    except db.Error as e:
+        print(f"Error retrieving member count from the database: {e}")
+        
+def updateMemberBalances(cursor: db.Cursor, user_id, transaction_amount) -> None:
+    try:
+        statement = "UPDATE user SET balance = balance + %s WHERE user_id = %s"
+        data = (transaction_amount, user_id)
+        cursor.execute(statement, data)
+        print("[USER UPDATE BALANCE] Successfully updated user (borrower) balance")
+    except db.Error as e:
+        print(f"[USER UPDATE BALANCE] Error updating user (borrower) balance: {e}")
+
+def updateMembersBalance(cursor: db.Cursor, members: list, dividedAmount: float) -> None:
+    try:
+        statement = "UPDATE user SET balance = balance + %s WHERE user_id = %s"
+        for member in members:
+            data = (dividedAmount, member)
+            cursor.execute(statement, data)
+        print("[USER UPDATE BALANCE] Successfully updated user (borrower) balance")
+    except db.Error as e:
+        print(f"[USER UPDATE BALANCE] Error updating user (borrower) balance: {e}")
+
+def updateGroupBalance(cursor: db.Cursor, group_id: int, transaction_amount: float) -> None:
+    try:
+        statement = "UPDATE `group` SET group_balance = group_balance + %s WHERE group_id = %s"
+        data = (transaction_amount, group_id)
+        cursor.execute(statement, data)
+        print("[GROUP UPDATE BALANCE] Successfully updated group balance")
+    except db.Error as e:
+        print(f"[GROUP UPDATE BALANCE] Error updating group balance: {e}")
+
+# addGroupTransaction using this: # INSERT INTO transaction(transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, isGroupLoan, amountRemaining, dividedAmount, user_id, group_id)
+def addLenderGroupTransaction(cursor: db.Cursor, transaction_amount: float, transaction_date: str, isPaid: int, isGroupLoan: int, amountRemaining: float, dividedAmount: float, user_id: int, group_id: int) -> None:
+    try:
+        statement = "INSERT INTO transaction(transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, isGroupLoan, amountRemaining, dividedAmount, user_id, group_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %d, %d)"
+        data = (transaction_amount, transaction_date, "loan", 1, 1, isPaid, isGroupLoan, amountRemaining, dividedAmount, user_id, group_id)
+        cursor.execute(statement, data)
+        print("[ADD LENDER GROUP TRANSACTION] Successfully added group transaction")
+    except db.Error as e:
+        print(f"[ADD LENDER GROUP TRANSACTION] Error adding group transaction: {e}")
+
+# FUNCTION TO CREATE GROUP LOAN TRANSACTION
+    # [PROCESS for adding group transaction where user is the lender]
+    # find borrowers by getting members of the group excluding user
+    # update the outstanding balance of the borrowers (members of the group)
+    # set group balance of group to group_balance += transaction_amount
+    # add transaction to the table
 def createGroupTransaction(cursor: db.Cursor) -> None:
+    # GROUP LOAN
+    group_id = chooseGroup(cursor)
     transaction_amount = askAmount()
     transaction_date = getDate()
-    transaction_type = askTransactionType()
-    if transaction_type == 'loan':
-        isLoan = 1
-        userIsLender = get_user_is_lender()                 
-        if userIsLender==1: # user is a lender
-            lender = 1
-            # ask user to select a borrower
-            print("Choose a borrower:")
-            getUsers(cursor)  # get the user count using the getUsers() function
-            user_id = chooseFriend(getUserCount(cursor))  # get the chosen friend using the chooseFriend() function
-            
-            
-            
-        else: # user is a borrower
-            
-            
-            
+    isPaid = 0
+    isGroupLoan = 1
+    amountRemaining = transaction_amount # amount remaining to be paid set to transaction_amount
+    userIsLender = get_user_is_lender()                 
+    if userIsLender==1: # user is a lender
+        lender = 1
+        memCount = getMemberCount(cursor, group_id)
+        print(memCount, "members")
+        initialAmount = transaction_amount/memCount
+        dividedAmount = round(initialAmount, 2)
+        members = getGroupMembers(cursor, group_id)
+        updateMembersBalance(cursor, members, dividedAmount)
+        updateGroupBalance(cursor, group_id, transaction_amount)
+        addLenderGroupTransaction(cursor, transaction_amount, transaction_date, isPaid, isGroupLoan, amountRemaining, dividedAmount, lender, group_id)
 
-    else: # transaction_type == 'settlement'
-        
-    
+            
+            
+            
 # [] Group Loan
-# INSERT INTO transaction(transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, isGroupLoan, user_id, group_id)
-# VALUES(100, '2020-11-12', 'loan', 1, 1, 0, 1, 1, 1);
+# INSERT INTO transaction(transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, isGroupLoan, amountRemaining, dividedAmount, user_id, group_id)
+# VALUES(100, '2020-11-12', 'loan', 1, 1, 0, 1, 1, 1);            
+            
+        
+            
+            
+            
+        #else: # user is a borrower
+            
 
-# [] Group Settlement
-# - User Loan
-
-def addExpense(cursor: db.Cursor, connection: db.Connection) -> None:
+# The addExpense function creates a single or group transaction
+def addExpense(cursor: db.Cursor, connection: db.Connection) -> None: 
     try:
         transaction_creator = None
         while transaction_creator not in ['1','2']: # 1 = user, 2 = group
-            transaction_creator = input("\nChoose Transaction Creator:\n[1] User\n[2] Group\nChoice: ")
+            transaction_creator = input("\nChoose Transaction Creator:\n[1] Single User Transaction\n[2] Group Transaction\nChoice: ")
             if transaction_creator=='1': # user transaction
                 # input transaction amount
                 transaction_amount = askAmount()
                 transaction_date = getDate()
-                
-                transaction_type_choice = None  # Initialize transaction_type with None
-                while transaction_type_choice not in ['1', '2']:
-                    transaction_type_choice = input("Choose transaction type:\n[1]Loan\n[2]Settlement\nChoice: ")
-
-                    # LOAN
-                    if transaction_type_choice == '1':
-                        transaction_type = "loan" # transaction type is a loan
-                        isLoan = 1 # set to true
-                        isPaid = 0 # set to false
-                    
-                        # ask user if borrower or lender
-                        userIsLender = get_user_is_lender()
-                                    
-                        if userIsLender==1: # user is a lender
-                            lender = 1
-                            # ask user to select a borrower
-                            print("Choose a borrower:")
-                            getUsers(cursor)  # get the user count using the getUsers() function
-                            user_id = chooseFriend(getUserCount(cursor))  # get the chosen friend using the chooseFriend() function
-                            userLendTransaction(cursor, transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, user_id)
-                            transaction_id = cursor.lastrowid
-                            addIsMadeBy(cursor, transaction_id, user_id) # is_made_by to create connection between transaction and user 
-                            updateUserBalance(cursor, user_id, transaction_amount) # update user balance of borrower
-                            
-                            
-                        else: # user is a borrower
-                            user_id = 1 # user (with user_id 1) is the borrower
-                            isLoan = 1
-                            # ask user to select a lender
-                            print("Choose a lender:")
-                            getUsers(cursor)  # get the user count using the getUsers() function
-                            lender = chooseFriend(getUserCount(cursor))  # get the chosen friend using the chooseFriend() function
-                            userLendTransaction(cursor, transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, user_id)
-                            transaction_id = cursor.lastrowid
-                            addIsMadeBy(cursor, transaction_id, user_id) # is_made_by to create connection between transaction and user 
-                            updateUserBalance(cursor, user_id, transaction_amount) # update user balance of borrower
-
-                    # SETTLEMENT
-                    elif transaction_type_choice == '2':
-                        transaction_type = "settlement"
-                        # Print all the transactions marked as loans and is not paid yet
-                        print_loans(cursor.fetchall())
-                        try:
-                            cursor.execute(
-                                "SELECT is_made_by.user_id, is_made_by.transaction_id, transaction_amount, transaction_date, lender  FROM transaction NATURAL JOIN is_made_by WHERE isLoan = 1 AND isPaid = 0 AND is_made_by.user_id = 1;");
-                            
-                        except db.Error as e:
-                            print(f"Error retrieving loans from the database: {e}")
-                            return None
-                        
-                        # User selects the loan that user will settle. 
-                        # User will input the transaction_id of the loan that user will settle.
-                        
-                        # Settlement
-                        # loan transaction is paid will be marked as true.
-                        # user balance of the borrower will be updated (balance = balance - transaction_amount)
-                        # user balance of the lender will be updated (balance = balance + transaction_amount)
-                        
-                        
-                    else:
-                        print("\n[ERROR] Invalid Input. Please Choose 1 or 2.\n")
+                transaction_type = "loan" # transaction type is a loan
+                isLoan = 1 # set to true
+                isPaid = 0 # set to false
             
+                # ask user if borrower or lender
+                userIsLender = get_user_is_lender()
+                            
+                if userIsLender==1: # user is a lender
+                    lender = 1
+                    # ask user to select a borrower
+                    print("Choose a borrower:")
+                    getUsers(cursor)  # get the user count using the getUsers() function
+                    user_id = chooseFriend(getUserCount(cursor))  # get the chosen friend using the chooseFriend() function
+                    userLendTransaction(cursor, transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, user_id)
+                    updateUserBalance(cursor, user_id, transaction_amount) # update user balance of borrower
+                    
+                else: # user is a borrower
+                    user_id = 1 # user (with user_id 1) is the borrower
+                    # ask user to select a lender
+                    print("Choose a lender:")
+                    getUsers(cursor)  # get the user count using the getUsers() function
+                    lender = chooseFriend(getUserCount(cursor))  # get the chosen friend using the chooseFriend() function
+                    userLendTransaction(cursor, transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, user_id)
+                    updateUserBalance(cursor, user_id, transaction_amount) # update user balance of borrower
+
             else: # group transaction (transaction_creator == 2)
                 createGroupTransaction(cursor)
-
-
-                
-                
-        # create a sample loan transaction with a lender and a borrower(user is the borrower)
-        # ask if user is the borrower or the lender
-
-        
-        
-        
-        
-        
-        
-#         INSERT INTO transaction(transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, user_id) 
-# VALUES(100, '2020-11-11', 'loan', 1, 1, 0, 2);
-
-        # statement = "INSERT INTO employees (first_name, last_name) VALUES (%s, %s)"
-        # data = (first_name, last_name)
-        # cursor.execute(statement, data)
-        
-        
+   
         connection.commit()
         print("[END] Successfully added transaction to the database")
     except db.Error as e:
