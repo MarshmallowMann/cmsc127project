@@ -32,6 +32,17 @@ def get_user_type():
             print("\n[ERROR] Invalid Input. Please Choose 1 or 2.\n")
     return user_is_lender
 
+def chooseFriend(user_count) -> str:
+    chosen_friend = None
+    while chosen_friend is None or not (2 <= chosen_friend <= user_count): # continue to ask user to input correct borrower number 
+        try:
+            chosen_friend = int(input("Input the number for the chosen borrower: "))
+            if not (2 <= chosen_friend <= user_count):
+                print("\nInvalid input. Please enter a valid number for the borrower.\n")
+        except ValueError:
+            print("\nInvalid input. Please enter a valid integer.\n")
+    return chosen_friend
+
 def addExpense(cursor: db.Cursor, connection: db.Connection) -> None:
     try:
         # input transaction amount
@@ -67,14 +78,7 @@ def addExpense(cursor: db.Cursor, connection: db.Connection) -> None:
                     # ask user to select a borrower
                     input("Choose a borrower:")
                     user_count = getUsers(cursor)  # get the user count using the getUsers() function
-                    user_input = None
-                    while user_input is None or not (2 <= user_input <= user_count): # continue to ask user to input correct borrower number 
-                        try:
-                            user_input = int(input("Input the number for the chosen borrower: "))
-                            if not (2 <= user_input <= user_count):
-                                print("\nInvalid input. Please enter a valid number for the borrower.\n")
-                        except ValueError:
-                            print("\nInvalid input. Please enter a valid integer.\n")
+                    
                             
                             
                 else: # user is a borrower
