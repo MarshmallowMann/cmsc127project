@@ -46,7 +46,7 @@ Reports to be generated:
 
 def print_menu() -> None:
     print("""
-    
+
     1. Add, delete, search, and update an expense
     2. Add, delete, search, and update a friend
     3. Add, delete, search, and update a group
