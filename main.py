@@ -129,12 +129,13 @@ def print_friend_menu(cur: db.Cursor, con: db.Connection) -> None:
     if choice == 1:
         friend.addFriend(cur, con)
     elif choice == 2:
-        friend.deleteFriend(cur)
+        friend.deleteFriend(cur, con)
     elif choice == 3:
-        friend.searchFriend(cur)
+        friend.searchFriend(cur, con)
     elif choice == 4:
-        friend.updateFriend(cur)
+        friend.updateFriend(cur, con)
     elif choice == 0:
+        cur.close()
         return None
 
 
