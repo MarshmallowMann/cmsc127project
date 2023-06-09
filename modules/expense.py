@@ -1,10 +1,7 @@
+import math
 import mariadb as db
 from datetime import date
 from tabulate import tabulate
-
-
-def addExpense(cursor: db.Cursor, conn: db.Connection) -> None:
-    return None
 
 
 def getUsers(cursor: db.Cursor) -> None:
@@ -364,7 +361,7 @@ def createGroupTransaction(cursor: db.Cursor) -> None:
 
 
 # The addExpense function creates a single or group transaction
-def addExpense(cursor: db.Cursor, connection: db.Connection) -> None:
+def add_expense(cursor: db.Cursor, connection: db.Connection) -> None:
     try:
         transaction_creator = None
         while transaction_creator not in ['1', '2']:  # 1 = user, 2 = group
@@ -417,15 +414,15 @@ def addExpense(cursor: db.Cursor, connection: db.Connection) -> None:
     return None
 
 
-def deleteExpense(cursor: db.Cursor) -> None:
+def delete_expense(cursor: db.Cursor) -> None:
     return None
 
 
-def searchExpense(cursor: db.Cursor) -> None:
+def search_expense(cursor: db.Cursor) -> None:
     return None
 
 
-def updateExpense(cursor: db.Cursor, connection: db.Connection) -> None:
+def update_expense(cursor: db.Cursor, connection: db.Connection) -> None:
     print("""
     [1] Individual Settlement
     [2] Group Settlement
@@ -467,7 +464,7 @@ def individualSettlement(cursor: db.Cursor, connection: db.Connection, transacti
     transaction_type = "settlement"
     try:
         cursor.execute(
-            "SELECT user_id, transaction_id, transaction_amount, transaction_date, lender  FROM transaction  WHERE isLoan = 1 AND isPaid = 0 AND user_id = 1;")
+            "SELECT user_id, transaction_id, transaction_amount, transaction_date, lender  FROM transaction  WHERE isLoan = 1 AND isPaid = 0 AND user_id = 1 AND isGroupLoan = 0;")
         print_loans(cursor.fetchall())
 
         toSettle = get_int_input(
@@ -541,28 +538,51 @@ def groupSettlement(cursor: db.Cursor, connection: db.Connection, transaction_ty
 
         # Create a new Settlement transaction
         try:
-            cursor.execute("INSERT INTO transaction (transaction_amount, transaction_date, transaction_type, isSettlement, settledLoan, user_id, group_id) VALUES (?, ?, ?, ?, ?, ?);",
-                           (loan[1], date.today(), transaction_type, 1, loan[0], 1, loan[6]))
+            print(loan)
+            cursor.execute("INSERT INTO transaction (transaction_amount, transaction_date, transaction_type, isSettlement, settledLoan, user_id, group_id) VALUES (?, ?, ?, ?, ?, ?, ?);",
+                           (loan[9], date.today(), transaction_type, 1, loan[0], 1, loan[13]))
         except db.Error as e:
             print(f"Error adding transaction to the database: {e}")
             return None
-        # Mark the loan transaction as paid
-        try:
-            cursor.execute(
-                "UPDATE transaction SET isPaid = 1 WHERE transaction_id = ?;", (toSettle,))
-        except db.Error as e:
-            print(f"Error updating transaction: {e}")
-            return None
-        # Update the balance of the borrower
-        balance = loan[1] * -1
 
-        # Update the balance of the group members
+        # Compute amount remaining
         try:
             cursor.execute(
-                "UPDATE user SET balance = balance + ? WHERE user_id IN (SELECT DISTINCT group_id FROM is_part_of WHERE group_id = ?);", (balance, loan[6]))
+                "SELECT SUM(transaction_amount) FROM transaction WHERE isSettlement = 1 AND settledLoan = ?;", (loan[0],))
+            amount_paid = cursor.fetchone()[0]
+        except db.Error as e:
+            print(f"Error computing amount remaining:{e}")
+            return None
+
+        # Update the balance of  the group members
+        try:
+            balance = loan[9] * -1
+            cursor.execute(
+                "UPDATE user SET balance = balance + ? WHERE user_id = 1;", (balance,))
+            cursor.execute(
+                "UPDATE `group` SET group_balance = group_balance + ? WHERE group_id = ?;", (balance, loan[13]))
         except db.Error as e:
             print(f"Error updating group balance: {e}")
             return None
+
+        # Update amount remaining for the loan
+        try:
+            cursor.execute(
+                "UPDATE transaction SET amountRemaining = ? WHERE transaction_id = ?;", (loan[8] - amount_paid, loan[0]))
+
+        except db.Error as e:
+            print(f"Error updating amount remaining: {e}")
+            return None
+
+        # Update isPaid for the loan
+        if (math.floor(loan[8] - amount_paid) == 0):
+            try:
+                cursor.execute(
+                    "UPDATE transaction SET isPaid = 1 WHERE transaction_id = ?;", (
+                        loan[0],)
+                )
+            except db.Error as e:
+                print(f"Error updating isPaid: {e}")
 
         # Commit
         connection.commit()

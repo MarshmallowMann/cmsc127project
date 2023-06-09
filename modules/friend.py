@@ -2,7 +2,7 @@ import mariadb as db
 from tabulate import tabulate
 
 
-def addFriend(cursor: db.Cursor, connection: db.Connection) -> None:
+def add_friend(cursor: db.Cursor, connection: db.Connection) -> None:
     username = get_string_input("Enter username: ")
     beginBalance = get_float_input("Enter beginning balance: ")
     try:
@@ -15,7 +15,7 @@ def addFriend(cursor: db.Cursor, connection: db.Connection) -> None:
     return None
 
 
-def deleteFriend(cursor: db.Cursor, connection: db.Connection) -> None:
+def delete_friend(cursor: db.Cursor, connection: db.Connection) -> None:
     # List all user
     try:
         cursor.execute("SELECT * FROM user WHERE user.user_id != 1;")
@@ -48,7 +48,7 @@ def deleteFriend(cursor: db.Cursor, connection: db.Connection) -> None:
     return None
 
 
-def searchFriend(cursor: db.Cursor, connection: db.Connection) -> None:
+def search_friend(cursor: db.Cursor, connection: db.Connection) -> None:
     # Search for a user using the like operator with the username
     username = get_string_input("Enter username: ")
 
@@ -65,7 +65,7 @@ def searchFriend(cursor: db.Cursor, connection: db.Connection) -> None:
     return None
 
 
-def updateFriend(cursor: db.Cursor, connection: db.Connection) -> None:
+def update_friend(cursor: db.Cursor, connection: db.Connection) -> None:
     try:
         cursor.execute("SELECT * FROM user WHERE user.user_id != 1;")
         friends = cursor.fetchall()
