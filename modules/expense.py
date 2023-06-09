@@ -401,7 +401,7 @@ def add_expense(cursor: db.Cursor, connection: db.Connection) -> None:
 def delete_expense(cursor: db.Cursor, conn: db.Connection) -> None:
 
     try:
-        cursor.execute("SELECT transaction_id, transaction_amount, transaction_date, transaction_type, isLoan, lender, amountRemaining, dividedAmount, isSettlement, settledLoan, user_id, group_id FROM transaction WHERE user_id = 1;")
+        cursor.execute("SELECT transaction_id, transaction_amount, transaction_date, transaction_type, isLoan, lender, amountRemaining, dividedAmount, isSettlement, settledLoan, user_id, group_id FROM transaction WHERE user_id = 1")
         expenses = cursor.fetchall()
 
         # If there are no expneses groups in the database, return None
