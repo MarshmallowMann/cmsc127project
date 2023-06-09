@@ -383,8 +383,11 @@ def add_expense(cursor: db.Cursor, connection: db.Connection) -> None:
                     # update user balance of borrower
                     updateUserBalance(cursor, user_id, transaction_amount)
 
-            else:  # group transaction (transaction_creator == 2)
+            elif transaction_creator=='2':  # group transaction (transaction_creator == 2)
                 createGroupTransaction(cursor)
+                
+            else:
+                print('\nInvalid Input. Please Choose 1 or 2.\n')
 
         connection.commit()
         print("[END] Transaction process has ended.")
