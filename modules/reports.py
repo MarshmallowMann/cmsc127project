@@ -210,6 +210,6 @@ def print_expenses(expenses: list) -> None:
     print("=====================================")
     print("\t\tExpenses")
     print(tabulate(expenses, headers=["Transaction Id", "Transaction Amount", "Transaction Date", "Transaction Type",
-                                      "Is Loan", "Lender", "Amount Remaining", "Divided Amount", "isSettlement", "Settled Loan" "User ID", "Group ID"], tablefmt="rounded_grid"))
+                                      "Is Loan", "Lender", "Amount Remaining", "Divided Amount", "isSettlement", "Settled Loan", "User ID", "Group ID"], tablefmt="rounded_grid"))
     print("=====================================")
     return None

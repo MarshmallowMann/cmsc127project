@@ -404,7 +404,7 @@ def add_expense(cursor: db.Cursor, connection: db.Connection) -> None:
 def delete_expense(cursor: db.Cursor, conn: db.Connection) -> None:
 
     try:
-        cursor.execute("SELECT transaction_id, transaction_amount, transaction_date, transaction_type, isLoan, lender, amountRemaining, dividedAmount, isSettlement, settledLoan, user_id, group_id FROM transaction WHERE user_id = 1;")
+        cursor.execute("SELECT transaction_id, transaction_amount, transaction_date, transaction_type, isLoan, lender, amountRemaining, dividedAmount, isSettlement, settledLoan, user_id, group_id FROM transaction WHERE user_id = 1")
         expenses = cursor.fetchall()
 
         # If there are no expneses groups in the database, return None
@@ -467,14 +467,17 @@ def update_expense(cursor: db.Cursor, connection: db.Connection) -> None:
     return None
 
 
-def print_loans(loans: list) -> None:
+def print_loans(loans: list) -> int:
     # SELECT user_id, transaction_id, transaction_amount, transaction_date, lender
-    print("=====================================")
-    print("\t\tLoans")
-    print(tabulate(loans, headers=["User Id", "Transaction Id",
-          "Transaction Amount", "Transaction Date", "Lender"], tablefmt="rounded_grid"))
-    print("=====================================")
-    return None
+    print()
+    print("\t\tLOANS")
+    if (len(loans) == 0):
+        print("There are no loans with outstanding \nbalance.")
+    else:
+        print(tabulate(loans, headers=["User Id", "Transaction Id",
+                                       "Transaction Amount", "Transaction Date", "Lender"], tablefmt="rounded_grid"))
+    print()
+    return len(loans)
 
 
 def print_expenses(expenses: list) -> None:
@@ -482,19 +485,22 @@ def print_expenses(expenses: list) -> None:
     print("=====================================")
     print("\t\tExpenses")
     print(tabulate(expenses, headers=["Transaction Id", "Transaction Amount", "Transaction Date", "Transaction Type",
-                                      "Is Loan", "Lender", "Amount Remaining", "Divided Amount", "isSettlement", "Settled Loan" "User ID", "Group ID"], tablefmt="rounded_grid"))
+                                      "Is Loan", "Lender", "Amount Remaining", "Divided Amount", "isSettlement", "Settled Loan", "User ID", "Group ID"], tablefmt="rounded_grid"))
     print("=====================================")
     return None
 
 
-def print_groups(groups: list) -> None:
+def print_groups(groups: list) -> int:
     # SELECT user_id, transaction_id, transaction_amount, transaction_date, lender
-    print("=====================================")
-    print("\t\tLoans")
-    print(tabulate(groups, headers=[
-          "Group Id", "Transaction Id"], tablefmt="rounded_grid"))
-    print("=====================================")
-    return None
+    print()
+    print("\t\tGROUPS")
+    if (len(groups) == 0):
+        print("There are no groups with outstanding balance.")
+    else:
+        print(tabulate(groups, headers=[
+            "Group Id", "Transaction Id"], tablefmt="rounded_grid"))
+    print()
+    return len(groups)
 
 
 def individualSettlement(cursor: db.Cursor, connection: db.Connection, transaction_type: str) -> None:
@@ -502,8 +508,9 @@ def individualSettlement(cursor: db.Cursor, connection: db.Connection, transacti
     try:
         cursor.execute(
             "SELECT user_id, transaction_id, transaction_amount, transaction_date, lender  FROM transaction  WHERE isLoan = 1 AND isPaid = 0 AND user_id = 1 AND isGroupLoan = 0;")
-        print_loans(cursor.fetchall())
-
+        lenLoans = print_loans(cursor.fetchall())
+        if lenLoans == 0:
+            return None
         toSettle = get_int_input(
             "Enter the transaction_id of the loan to settle: ")
 
@@ -555,13 +562,19 @@ def groupSettlement(cursor: db.Cursor, connection: db.Connection, transaction_ty
         cursor.execute("SELECT is_created_by.group_id, group_name FROM is_created_by JOIN `group` ON is_created_by.group_id = `group`.group_id JOIN transaction t on is_created_by.transaction_id = t.transaction_id WHERE isLoan = 1 AND isPaid = 0 AND t.user_id = 1 AND isGroupLoan = 1;")
         groups = cursor.fetchall()
 
-        print_groups(groups)
+        lenGroups = print_groups(groups)
+
+        if lenGroups == 0:
+            return None
 
         group_id = get_int_input("Enter the group_id of the group to settle: ")
 
         # List all the loans in the group
         cursor.execute("SELECT user_id, transaction_id, transaction_amount, transaction_date, lender  FROM transaction  WHERE isLoan = 1 AND isPaid = 0 AND user_id = 1 AND isGroupLoan = 1 AND group_id = ?;", (group_id,))
-        print_loans(cursor.fetchall())
+        lenLoans = print_loans(cursor.fetchall())
+
+        if (lenLoans == 0):
+            return None
 
         toSettle = get_int_input(
             "Enter the transaction_id of the loan to settle: ")
