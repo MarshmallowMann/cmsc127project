@@ -108,7 +108,7 @@ def print_expense_menu(cur: db.Cursor, con: db.Connection) -> None:
     elif choice == 3:
         expense.searchExpense(cur)
     elif choice == 4:
-        expense.updateExpense(cur)
+        expense.updateExpense(cur, con)
     elif choice == 0:
         return None
 
