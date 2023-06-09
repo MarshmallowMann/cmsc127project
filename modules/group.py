@@ -85,19 +85,18 @@ def delete_group(cursor: db.Cursor, conn: db.Connection) -> None:
 # Print all the groups in the database
 def search_group(cursor: db.Cursor) -> None:
 
-    # Fetch the group from the database
-    cursor.execute("SELECT * FROM `group`;")
-    groups = cursor.fetchall()
-
-    # If there are no groups in the database, return None
-    if len(groups) <= 0:
-        print("There are no groups in the database.")
-        return None
-        
-    # Get the group_id of the group to search
-    group_id = get_int_input("Enter Group ID: ")
-
     try:
+        # Fetch the group from the database
+        cursor.execute("SELECT * FROM `group`;")
+        groups = cursor.fetchall()
+
+        # If there are no groups in the database, return None
+        if len(groups) <= 0:
+            print("There are no groups in the database.")
+            return None
+            
+        # Get the group_id of the group to search
+        group_id = get_int_input("Enter Group ID: ")
         # Fetch the group from the database
         cursor.execute(
             "SELECT * FROM `group` WHERE group_id = ?;", (f"{group_id}",))
@@ -122,16 +121,16 @@ def search_group(cursor: db.Cursor) -> None:
 # Update a group in the database
 def update_group(cursor: db.Cursor, conn: db.Connection) -> None:
     
-    # Fetch the group from the database
-    cursor.execute("SELECT * FROM `group`;")
-    groups = cursor.fetchall()
-
-    # If there are no groups in the database, return None
-    if len(groups) <= 0:
-        print("There are no groups in the database.")
-        return None
-
     try:
+        # Fetch the group from the database
+        cursor.execute("SELECT * FROM `group`;")
+        groups = cursor.fetchall()
+
+        # If there are no groups in the database, return None
+        if len(groups) <= 0:
+            print("There are no groups in the database.")
+            return None
+        
         print_groups(groups)
 
         # Get the group_id of the group to update
@@ -170,10 +169,13 @@ def add_friend_to_group(cursor: db.Cursor, conn: db.Connection, group_id) -> Non
                 # Add a friend to the group and update the number of members in the group
                 cursor.execute(
                     "INSERT INTO is_part_of(user_id, group_id) VALUES(?, ?);", (friendToAdd, group_id))
-                cursor.execute(
-                    "UPDATE `group` SET num_of_members = num_of_members + 1 WHERE group_id = ?;", (group_id,))
-                conn.commit()
-
+                try:
+                    cursor.execute(
+                        "UPDATE `group` SET num_of_members = num_of_members + 1 WHERE group_id = ?;", (group_id,))
+                    conn.commit()
+                except db.Error as e:
+                    print(f"\n[ERROR] Error updating number of members in the group: {e}\n")
+                
                 # Ask if the user wants to add another friend to the group
                 anotherFriend = input(
                     "\n[SUCCESS] Added Friend to the Group.\n\nDo you want to add another friend to the group? [y/n]: ")
@@ -193,7 +195,7 @@ def add_friend_to_group(cursor: db.Cursor, conn: db.Connection, group_id) -> Non
 
             # If there is an error, prompts the error
             except db.Error as e:
-                print(f"\n[ERROR] Error adding user to the group. \n")
+                print(f"\n[ERROR] Error adding user to the group: {e} \n")
 
     return None
 
@@ -209,7 +211,7 @@ def get_string_input(prompt: str) -> str:
                 raise ValueError
             return text
         except ValueError:
-            print("[Invalid Input] Please Try Again.\n")
+            print("[ERROR] Invalid Input. Please Try Again.\n")
 
 
 # Int input validation
@@ -219,7 +221,7 @@ def get_int_input(prompt: str) -> int:
             num = int(input(prompt).strip())
             return num
         except ValueError:
-            print("[Invalid Input] Please Try Again.\n")
+            print("[ERROR] Invalid Input. Please Try Again.\n")
 
 
 # Float input validation
@@ -234,7 +236,7 @@ def get_float_input(prompt: str) -> int:
                 raise ValueError
             return num
         except ValueError:
-            print("[Invalid Input] Please Try Again.\n")
+            print("[ERROR] Invalid Input. Please Try Again.\n")
 
 
 # Print the groups in the database

@@ -2,6 +2,7 @@ import mariadb as db
 from tabulate import tabulate
 import modules.group as group
 import modules.friend as friend
+import modules.expense as expense
 
 
 # Print all the expenses within a certain month
@@ -65,7 +66,7 @@ def view_all_expenses_made_with_friend(cursor: db.Cursor) -> None:
     try:
         # Fetch the user's balance from the database
         cursor.execute(
-            "SELECT * FROM transaction WHERE (user_id=1 AND lender=?) OR (lender=1 AND user_id=?) ")
+            "SELECT transaction_id, transaction_amount, transaction_date, transaction_type, isLoan, lender, amountRemaining, dividedAmount, isSettlement, settledLoan, user_id, group_id FROM transaction WHERE (user_id=1 AND lender=?) OR (lender=1 AND user_id=?) ", (friend_id, friend_id,))
         friends = cursor.fetchall()
 
     # If there is an error, prompts the error
@@ -74,19 +75,29 @@ def view_all_expenses_made_with_friend(cursor: db.Cursor) -> None:
         return None
 
     # Print all the friends in the database
-    friend.print_users(friends)
+    print_expenses(friends)
     return None
 
 
 # Print all the expenses made with a group
 def view_all_expenses_with_group(cursor: db.Cursor) -> None:
 
-    view_all_groups(cursor)
-
-    # Get the group id from the user
-    group_id = group.get_int_input("Enter group id: ")
-
     try:
+        # Fetch the groups from the database
+        cursor.execute("SELECT * FROM `group`;")
+        groups = cursor.fetchall()
+
+        # If there are no groups in the database, return None
+        if len(groups) <= 0:
+            print("There are no groups in the database.")
+            return None
+
+        # Print the groups
+        group.print_groups(groups)
+
+        # Get the group id from the user
+        group_id = group.get_int_input("Enter Group ID: ")
+        
         # Fetch the expenses from the database
         cursor.execute(
             "SELECT transaction_id, transaction_amount, transaction_date, transaction_type, isLoan, lender, amountRemaining, dividedAmount, isSettlement, settledLoan, user_id, group_id FROM transaction WHERE group_id = ?;", (group_id,))
@@ -196,20 +207,18 @@ def view_all_groups_with_balance(cursor: db.Cursor) -> None:
 
 # Print user balance
 def print_self(self: list) -> None:
-    print("=====================================")
-    print("\t\tUser")
-    print("=====================================")
+    print("\n\n\t\tUser")
     print(tabulate(self, headers=[
           "ID", "Username", "Balance"], tablefmt="rounded_grid"))
-    print("=====================================")
+    print()
     return None
 
 
 def print_expenses(expenses: list) -> None:
     # SELECT user_id, transaction_id, transaction_amount, transaction_date, lender
-    print("=====================================")
-    print("\t\tExpenses")
+    print()
+    print("\n\t\tExpenses")
     print(tabulate(expenses, headers=["Transaction Id", "Transaction Amount", "Transaction Date", "Transaction Type",
                                       "Is Loan", "Lender", "Amount Remaining", "Divided Amount", "isSettlement", "Settled Loan", "User ID", "Group ID"], tablefmt="rounded_grid"))
-    print("=====================================")
+    print()
     return None

@@ -78,6 +78,9 @@ _______________________________________________
        Thank you for using SplitTogether!
 _______________________________________________
 -----------------------------------------------""")
+            cur.close()
+            conn.close()
+            sys.exit(0)
             break
         else:
             print("[Invalid Input] Please Try Again.")
@@ -119,6 +122,7 @@ def print_expense_menu(cur: db.Cursor, con: db.Connection) -> None:
         expense.delete_expense(cur, con)
     elif choice == 3:
         expense.search_expense(cur)
+
     elif choice == 4:
         expense.update_expense(cur, con)
     elif choice == 0:
@@ -149,7 +153,6 @@ def print_friend_menu(cur: db.Cursor, con: db.Connection) -> None:
     elif choice == 4:
         friend.update_friend(cur, con)
     elif choice == 0:
-        cur.close()
         return None
 
 

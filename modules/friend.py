@@ -133,7 +133,7 @@ def get_string_input(prompt: str) -> str:
                 raise ValueError
             return text
         except ValueError:
-            print("\n[Invalid Input] Please Try Again.\n")
+            print("\n[ERROR] Invalid Input. Please Try Again.\n")
 
 
 # Int input validation
@@ -143,7 +143,7 @@ def get_int_input(prompt: str) -> int:
             num = int(input(prompt).strip())
             return num
         except ValueError:
-            print("[Invalid Input] Please Try Again.\n")
+            print("[ERROR] Invalid Input. Please Try Again.\n")
 
 
 # Float input validation
@@ -158,7 +158,7 @@ def get_float_input(prompt: str) -> int:
                 raise ValueError
             return num
         except ValueError:
-            print("[Invalid Input] Please Try Again.\n")
+            print("[ERROR] Invalid Input. Please Try Again.\n")
 
 
 # Print the friends in the database
