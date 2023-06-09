@@ -403,6 +403,12 @@ def delete_expense(cursor: db.Cursor, conn: db.Connection) -> None:
     try:
         cursor.execute("SELECT * FROM transaction WHERE user_id = 1;")
         expenses = cursor.fetchall()
+
+        # If there are no groups in the database, return None
+        if len(expenses) <= 0:
+            print("There are no groups in the database.")
+            return None
+
     except db.Error as e:
         print(f"Error fetching data: {e}")
         return None
@@ -429,7 +435,7 @@ def search_expense(cursor: db.Cursor) -> None:
 
     try:
         cursor.execute(
-            "SELECT transaction_id, transaction_date, amountRemaining FROM `transaction` WHERE user_id = 1 AND isLoan = true AND transaction_id = ?;", (transaction_id,))
+            "SELECT transaction_id, transaction_date, amountRemaining FROM `transaction` WHERE user_id = 1 AND transaction_id = ?;", (transaction_id,))
         expenses = cursor.fetchall()
 
     except db.Error as e:
@@ -464,6 +470,16 @@ def print_loans(loans: list) -> None:
     print("\t\tLoans")
     print(tabulate(loans, headers=["User Id", "Transaction Id",
           "Transaction Amount", "Transaction Date", "Lender"], tablefmt="rounded_grid"))
+    print("=====================================")
+    return None
+
+
+def print_expenses(expenses: list) -> None:
+    # SELECT user_id, transaction_id, transaction_amount, transaction_date, lender
+    print("=====================================")
+    print("\t\tExpenses")
+    print(tabulate(expenses, headers=["Transaction Id", "Transaction Amount", "Transaction Date", "Transaction Type",
+                                      "Is Loan", "Lender", "Amount Remaining", "Divided Amount", "isSettlement", "Settled Loan" "User ID", "Group ID"], tablefmt="rounded_grid"))
     print("=====================================")
     return None
 

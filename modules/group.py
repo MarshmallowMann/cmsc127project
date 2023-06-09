@@ -58,6 +58,7 @@ def delete_group(cursor: db.Cursor, conn: db.Connection) -> None:
 
     # If there are no groups in the database, return None
     if len(groups) <= 0:
+        print("There are no groups in the database.")
         return None
 
     else:
@@ -93,13 +94,19 @@ def search_group(cursor: db.Cursor) -> None:
             "SELECT * FROM `group` WHERE group_id = ?;", (f"{group_id}",))
         groups = cursor.fetchall()
 
+        # If there are no groups in the database, return None
+        if len(groups) <= 0:
+            print("There are no groups in the database.")
+            return None
+
+        # Print the searched group
+        print_groups(groups)
+
     # If there is an error, prompts the error
     except db.Error as e:
         print(f"Error fetching data: {e}")
         return None
 
-    # Print the searched group
-    print_groups(groups)
     return None
 
 
@@ -110,6 +117,12 @@ def update_group(cursor: db.Cursor, conn: db.Connection) -> None:
         # Print all the groups in the database
         cursor.execute("SELECT * FROM `group`;")
         groups = cursor.fetchall()
+
+        # If there are no groups in the database, return None
+        if len(groups) <= 0:
+            print("There are no groups in the database.")
+            return None
+
         print_groups(groups)
 
         # Get the group_id of the group to update

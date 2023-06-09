@@ -116,10 +116,10 @@ def print_expense_menu(cur: db.Cursor, con: db.Connection) -> None:
 def print_friend_menu(cur: db.Cursor, con: db.Connection) -> None:
     print(
         """
-[1] Add an friend
-[2] Delete an friend
-[3] Search an friend
-[4] Update an friend
+[1] Add a friend
+[2] Delete a friend
+[3] Search a friend
+[4] Update a friend
 
 [0] Back    
 """)
@@ -142,10 +142,10 @@ def print_friend_menu(cur: db.Cursor, con: db.Connection) -> None:
 def print_group_menu(cur: db.Cursor, con: db.Connection) -> None:
     print(
         """
-[1] Add an group
-[2] Delete an group
-[3] Search an group
-[4] Update an group
+[1] Add a group
+[2] Delete a group
+[3] Search a group
+[4] Update a group
 
 [0] Back    
 """)
