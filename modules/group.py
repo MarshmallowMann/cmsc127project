@@ -177,7 +177,7 @@ def add_friend_to_group(cursor: db.Cursor, conn: db.Connection, group_id) -> Non
     return None
 
 
-# Handler and checker for string input
+# String input validation
 def get_string_input(prompt: str) -> str:
     while 1:
         try:
@@ -191,7 +191,7 @@ def get_string_input(prompt: str) -> str:
             print("Invalid input. Try again.")
 
 
-# Handler and checker for int input
+# Int input validation
 def get_int_input(prompt: str) -> int:
     while True:
         try:
@@ -201,7 +201,7 @@ def get_int_input(prompt: str) -> int:
             print("Invalid input. Please try again.")
 
 
-# Handler and checker for float input
+# Float input validation
 def get_float_input(prompt: str) -> int:
     while True:
         try:
@@ -216,7 +216,7 @@ def get_float_input(prompt: str) -> int:
             print("Invalid input. Please try again.")
 
 
-# Print all the groups in the database
+# Print the groups in the database
 def print_groups(groups: list) -> None:
     print("=====================================")
     print("\t\tGroups")
