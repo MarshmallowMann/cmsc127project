@@ -39,7 +39,12 @@ IS_CREATED_BY (Transaction id, User id, Group id)
 
 def main():
 
-    print("Hello World!")
+    print("""
+_______________________________________________
+-----------------------------------------------
+         Welcome to SplitTogether!
+_______________________________________________
+-----------------------------------------------""")
 
     try:
         conn = db.connect(
@@ -56,7 +61,7 @@ def main():
     while True:
         print_menu()
 
-        choice = get_int_input("Enter your choice: ")
+        choice = get_int_input("Enter Your Choice: ")
         print(f"Choice: {choice}")
         if choice == 1:
             print_expense_menu(cur, conn)
@@ -67,22 +72,30 @@ def main():
         elif choice == 4:
             print_report_menu(cur, conn)
         elif choice == 0:
-            print("Goodbye!")
+            print("""
+_______________________________________________
+-----------------------------------------------
+       Thank you for using SplitTogether!
+_______________________________________________
+-----------------------------------------------""")
+            cur.close()
+            conn.close()
+            sys.exit(0)
             break
         else:
-            print("Invalid input. Please try again.")
+            print("[Invalid Input] Please Try Again.")
 
 
 def print_menu() -> None:
     print(
         """
-Enter a number:
-[1] Add, delete, search, and update an expense
-[2] Add, delete, search, and update a friend
-[3] Add, delete, search, and update a group
----------------------------------------------
-[4]  Generate Reports
-
+[Enter a Number]
+-----------------------------------------------
+[1] Add, Delete, Search, and Update an Expense
+[2] Add, Delete, Search, and Update a Friend
+[3] Add, Delete, Search, and Update a Group
+[4] Generate Reports
+-----------------------------------------------
 [0] Exit
 """)
     return None
@@ -91,15 +104,17 @@ Enter a number:
 def print_expense_menu(cur: db.Cursor, con: db.Connection) -> None:
     print(
         """
-[1] Add an expense
-[2] Delete an expense
-[3] Search an expense
-[4] Update an expense
-
-[0] Back    
+[EXPENSE MENU]
+-----------------------------------------------
+[1] Add an Expense
+[2] Delete an Expense
+[3] Search an Expense
+[4] Update an Expense
+-----------------------------------------------
+[0] Back     
 """)
 
-    choice = get_int_input("Enter your choice: ")
+    choice = get_int_input("Enter Your Choice: ")
 
     if choice == 1:
         expense.add_expense(cur, con)
@@ -107,8 +122,9 @@ def print_expense_menu(cur: db.Cursor, con: db.Connection) -> None:
         expense.delete_expense(cur, con)
     elif choice == 3:
         expense.search_expense(cur)
+
     elif choice == 4:
-        expense.update_expense(cur)
+        expense.update_expense(cur, con)
     elif choice == 0:
         return None
 
@@ -116,15 +132,17 @@ def print_expense_menu(cur: db.Cursor, con: db.Connection) -> None:
 def print_friend_menu(cur: db.Cursor, con: db.Connection) -> None:
     print(
         """
-[1] Add an friend
-[2] Delete an friend
-[3] Search an friend
-[4] Update an friend
-
+[FRIEND MENU]
+-----------------------------------------------
+[1] Add a Friend
+[2] Delete a Friend
+[3] Search a Friend
+[4] Update a Friend
+-----------------------------------------------
 [0] Back    
 """)
 
-    choice = get_int_input("Enter your choice: ")
+    choice = get_int_input("Enter Your Choice: ")
 
     if choice == 1:
         friend.add_friend(cur, con)
@@ -135,22 +153,23 @@ def print_friend_menu(cur: db.Cursor, con: db.Connection) -> None:
     elif choice == 4:
         friend.update_friend(cur, con)
     elif choice == 0:
-        cur.close()
         return None
 
 
 def print_group_menu(cur: db.Cursor, con: db.Connection) -> None:
     print(
         """
-[1] Add an group
-[2] Delete an group
-[3] Search an group
-[4] Update an group
-
+[GROUP MENU]
+-----------------------------------------------
+[1] Add a Group
+[2] Delete a Group
+[3] Search a Group
+[4] Update a Group
+-----------------------------------------------
 [0] Back    
 """)
 
-    choice = get_int_input("Enter your choice: ")
+    choice = get_int_input("Enter Your Choice: ")
 
     if choice == 1:
         group.add_group(cur, con)
@@ -167,19 +186,21 @@ def print_group_menu(cur: db.Cursor, con: db.Connection) -> None:
 def print_report_menu(cur: db.Cursor, con: db.Connection) -> None:
     print(
         """
-[1] View all expenses made within a month
-[2] View all expenses made with a friend
-[3] View all expenses made with a group
-[4] View current balance from all expenses
-[5] View all friends with outstanding balance
-[6] View all groups
-[7] View all groups with an outstanding balance
-
+[REPORTS MENU]
+-----------------------------------------------
+[1] View All Expenses Made within a Month
+[2] View All Expenses Made with a Friend
+[3] View All Expenses Made with a Group
+[4] View Current Balance from All Expenses
+[5] View All Friends with Outstanding Balance
+[6] View All Groups
+[7] View All Groups with an Outstanding Balance
+-----------------------------------------------
 [0] Back
     """
     )
 
-    choice = get_int_input("Select report to generate: ")
+    choice = get_int_input("Select Report to Generate: ")
 
     if choice == 1:
         report.view_all_expenses_within_month(cur)
@@ -205,7 +226,7 @@ def get_int_input(prompt: str) -> int:
             num = int(input(prompt))
             return num
         except ValueError:
-            print("Invalid input. Please try again.")
+            print("[Invalid Input] Please Try Again.\n")
 
 
 if __name__ == "__main__":

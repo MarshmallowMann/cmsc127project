@@ -243,3 +243,5 @@ test.py
 
 # End of https://mrkandreev.name/snippets/gitignore-generator/#venv,Python,dotenv,PyCharm,VisualStudioCode
 modules/__pycache__/group.cpython-39.pyc
+
+modules/__pycache__/expense.cpython-310.pyc
