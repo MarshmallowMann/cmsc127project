@@ -175,10 +175,10 @@ def chooseGroup(cursor: db.Cursor) -> int:
 #     except database.Error as e:
 #         print(f"Error retrieving entry from the database: {e}")   
 
-def getGroupMembers(cursor: db.Cursor, group_id) -> list:
+def getGroupMembers(cursor: db.Cursor, group_id, lender) -> list:
     try:
-        statement = "SELECT user_id FROM is_part_of WHERE group_id = %d"
-        data = (group_id,)
+        statement = "SELECT user_id FROM is_part_of WHERE group_id = %d AND user_id != %d"
+        data = (group_id,lender)
         cursor.execute(statement, data)
         members = []
         for row in cursor:
@@ -200,15 +200,6 @@ def getMemberCount(cursor: db.Cursor, group_id: int) -> int:
     except db.Error as e:
         print(f"Error retrieving member count from the database: {e}")
         
-def updateMemberBalances(cursor: db.Cursor, user_id, transaction_amount) -> None:
-    try:
-        statement = "UPDATE user SET balance = balance + %s WHERE user_id = %s"
-        data = (transaction_amount, user_id)
-        cursor.execute(statement, data)
-        print("[USER UPDATE BALANCE] Successfully updated user (borrower) balance")
-    except db.Error as e:
-        print(f"[USER UPDATE BALANCE] Error updating user (borrower) balance: {e}")
-
 def updateMembersBalance(cursor: db.Cursor, members: list, dividedAmount: float) -> None:
     try:
         statement = "UPDATE user SET balance = balance + %s WHERE user_id = %s"
@@ -257,14 +248,16 @@ def createGroupTransaction(cursor: db.Cursor) -> None:
         lender = 1
         memCount = getMemberCount(cursor, group_id)
         print(memCount, "members")
-        initialAmount = transaction_amount/memCount
+        initialAmount = transaction_amount/(memCount-1)
         dividedAmount = round(initialAmount, 2)
-        members = getGroupMembers(cursor, group_id)
+        members = getGroupMembers(cursor, group_id, lender)
         updateMembersBalance(cursor, members, dividedAmount)
         updateGroupBalance(cursor, group_id, transaction_amount)
         addLenderGroupTransaction(cursor, transaction_amount, transaction_date, isPaid, isGroupLoan, amountRemaining, dividedAmount, lender, group_id)
+    #else: # user is a borrower
+        
+        
 
-            
             
             
 # [] Group Loan
@@ -272,10 +265,7 @@ def createGroupTransaction(cursor: db.Cursor) -> None:
 # VALUES(100, '2020-11-12', 'loan', 1, 1, 0, 1, 1, 1);            
             
         
-            
-            
-            
-        #else: # user is a borrower
+        
             
 
 # The addExpense function creates a single or group transaction
