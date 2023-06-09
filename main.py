@@ -102,13 +102,13 @@ def print_expense_menu(cur: db.Cursor, con: db.Connection) -> None:
     choice = get_int_input("Enter your choice: ")
 
     if choice == 1:
-        expense.addExpense(cur, con)
+        expense.add_expense(cur, con)
     elif choice == 2:
-        expense.deleteExpense(cur)
+        expense.delete_expense(cur, con)
     elif choice == 3:
-        expense.searchExpense(cur)
+        expense.search_expense(cur)
     elif choice == 4:
-        expense.updateExpense(cur)
+        expense.update_expense(cur, con)
     elif choice == 0:
         return None
 
@@ -127,13 +127,13 @@ def print_friend_menu(cur: db.Cursor, con: db.Connection) -> None:
     choice = get_int_input("Enter your choice: ")
 
     if choice == 1:
-        friend.addFriend(cur, con)
+        friend.add_friend(cur, con)
     elif choice == 2:
-        friend.deleteFriend(cur, con)
+        friend.delete_friend(cur, con)
     elif choice == 3:
-        friend.searchFriend(cur, con)
+        friend.search_friend(cur, con)
     elif choice == 4:
-        friend.updateFriend(cur, con)
+        friend.update_friend(cur, con)
     elif choice == 0:
         cur.close()
         return None
@@ -153,13 +153,13 @@ def print_group_menu(cur: db.Cursor, con: db.Connection) -> None:
     choice = get_int_input("Enter your choice: ")
 
     if choice == 1:
-        group.addGroup(cur)
+        group.add_group(cur, con)
     elif choice == 2:
-        group.deleteGroup(cur)
+        group.delete_group(cur, con)
     elif choice == 3:
-        group.searchGroup(cur)
+        group.search_group(cur)
     elif choice == 4:
-        group.updateGroup(cur)
+        group.update_group(cur, con)
     elif choice == 0:
         return None
 
@@ -182,19 +182,19 @@ def print_report_menu(cur: db.Cursor, con: db.Connection) -> None:
     choice = get_int_input("Select report to generate: ")
 
     if choice == 1:
-        report.viewAllExpensesWithinMonth(cur)
+        report.view_all_expenses_within_month(cur)
     elif choice == 2:
-        report.viewAllExpensesWithFriend(cur)
+        report.view_all_expenses_made_with_friend(cur)
     elif choice == 3:
-        report.viewAllExpensesWithGroup(cur)
+        report.view_all_expenses_with_group(cur)
     elif choice == 4:
-        report.viewCurrentBalance(cur)
+        report.view_current_balance(cur)
     elif choice == 5:
-        report.viewAllFriendsWithBalance(cur)
+        report.view_all_friends_with_balance(cur)
     elif choice == 6:
-        report.viewAllGroups(cur)
+        report.view_all_groups(cur)
     elif choice == 7:
-        report.viewAllGroupsWithBalance(cur)
+        report.view_all_groups_with_balance(cur)
     elif choice == 0:
         return None
 

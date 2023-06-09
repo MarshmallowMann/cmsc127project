@@ -82,7 +82,7 @@ def delete_group(cursor: db.Cursor, conn: db.Connection) -> None:
 
 
 # Print all the groups in the database
-def search_group(cursor: db.Cursor, conn: db.Connection) -> None:
+def search_group(cursor: db.Cursor) -> None:
 
     # Get the group_id of the group to search
     group_id = get_int_input("Enter group id: ")

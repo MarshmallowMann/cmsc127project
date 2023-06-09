@@ -2,10 +2,7 @@ import mariadb as db
 from tabulate import tabulate
 
 
-# Add a friend to the database
-def addFriend(cursor: db.Cursor, connection: db.Connection) -> None:
-
-    # Get the username and beginning balance from the user
+def add_friend(cursor: db.Cursor, connection: db.Connection) -> None:
     username = get_string_input("Enter username: ")
     beginBalance = get_float_input("Enter beginning balance: ")
 
@@ -23,9 +20,8 @@ def addFriend(cursor: db.Cursor, connection: db.Connection) -> None:
     return None
 
 
-# Delete a friend from the database
-def deleteFriend(cursor: db.Cursor, connection: db.Connection) -> None:
-
+def delete_friend(cursor: db.Cursor, connection: db.Connection) -> None:
+    # List all user
     try:
         # Fetch all the friends in the database
         cursor.execute("SELECT * FROM user WHERE user.user_id != 1;")
@@ -65,7 +61,7 @@ def deleteFriend(cursor: db.Cursor, connection: db.Connection) -> None:
 
 
 # Search for a friend in the database
-def searchFriend(cursor: db.Cursor, connection: db.Connection) -> None:
+def search_friend(cursor: db.Cursor, connection: db.Connection) -> None:
 
     # Search for a user using the like operator with the username
     username = get_string_input("Enter username: ")
@@ -88,7 +84,7 @@ def searchFriend(cursor: db.Cursor, connection: db.Connection) -> None:
 
 
 # Update a friend in the database
-def updateFriend(cursor: db.Cursor, connection: db.Connection) -> None:
+def update_friend(cursor: db.Cursor, connection: db.Connection) -> None:
 
     try:
         # Fetch and print all the friends in the database
