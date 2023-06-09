@@ -338,7 +338,7 @@ def add_expense(cursor: db.Cursor, connection: db.Connection) -> None:
                 createGroupTransaction(cursor)
    
         connection.commit()
-        print("[END] Successfully added transaction to the database")
+        print("[END] Transaction process has ended.")
     except db.Error as e:
         print(f"Error adding transaction to the database: {e}")
     return None
