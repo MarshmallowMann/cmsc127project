@@ -69,14 +69,13 @@ def get_float_input(prompt: str) -> int:
         except ValueError:
             print("Invalid input. Please try again.")
             
-def addIsCreatedBy(cursor: db.Cursor, connection: db.Connection, transaction_id, user_id, group_id) -> None:
+def addIsCreatedBy(cursor: db.Cursor, transaction_id, user_id, group_id) -> None:
     try:
         # if group transaction
         statement = "INSERT INTO is_created_by(transaction_id, user_id, group_id) VALUES (%d, %d, %d)"
         data = (transaction_id, user_id, group_id)
         cursor.execute(statement, data)
-        connection.commit()
-        print("Successfully added is_created_by group transaction to the database.")
+        print("[ADD IS_CREATED_BY] Successfully added is_created_by group transaction to the database.")
     except db.Error as e:
         print(f"Error adding is_created_by group transaction to the database: {e}")
 
@@ -126,7 +125,7 @@ def getGroups(cursor: db.Cursor) -> None:
     try:
         statement = "SELECT group_name FROM `group`"
         cursor.execute(statement)
-        print("\n[GROUPS]")
+        print("[GROUPS]")
         # iterate over the users
         for i, row in enumerate(cursor):
             groupname = row[0]
@@ -134,16 +133,6 @@ def getGroups(cursor: db.Cursor) -> None:
     except db.Error as e:
         print(f"[GET ALL GROUPS] Error retrieving groups from the database: {e}")    
     
-# def get_data(last_name):
-#     try:
-#         statement = "SELECT first_name, last_name FROM employees WHERE last_name=%s"
-#         data = (last_name,)
-#         cursor.execute(statement, data)
-#         for (first_name, last_name) in cursor:
-#             print(f"Successfully retrieved {first_name}, {last_name}")
-#     except database.Error as e:
-#         print(f"Error retrieving entry from the database: {e}")   
- 
 def setGroupID(cursor: db.Cursor) -> int:
     group_id = None
     while group_id is None:
@@ -160,7 +149,7 @@ def setGroupID(cursor: db.Cursor) -> int:
     return group_id
     
 def chooseGroup(cursor: db.Cursor) -> int:
-    print("Choose a group to transact with:\n")
+    print("\nChoose a group to transact with:")
     getGroups(cursor)
     group_id = setGroupID(cursor)
     return group_id
@@ -184,7 +173,7 @@ def getGroupMembers(cursor: db.Cursor, group_id, lender) -> list:
         for row in cursor:
             members.append(row[0])
             
-        print(f"Successfully retrieved group members from the database.")
+        print(f"[GET GROUP MEMBERS] Successfully retrieved group members from the database.")
         return members
     except db.Error as e:
         print(f"[GET GROUP MEMBERS] Error retrieving group members from the database: {e}")
@@ -223,18 +212,53 @@ def updateGroupBalance(cursor: db.Cursor, group_id: int, transaction_amount: flo
 def addLenderGroupTransaction(cursor: db.Cursor, transaction_amount: float, transaction_date: str, isPaid: int, isGroupLoan: int, amountRemaining: float, dividedAmount: float, user_id: int, group_id: int) -> None:
     try:
         statement = "INSERT INTO transaction(transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, isGroupLoan, amountRemaining, dividedAmount, user_id, group_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %d, %d)"
-        data = (transaction_amount, transaction_date, "loan", 1, 1, isPaid, isGroupLoan, amountRemaining, dividedAmount, user_id, group_id)
+        data = (transaction_amount, transaction_date, "loan", 1, user_id, isPaid, isGroupLoan, amountRemaining, dividedAmount, user_id, group_id)
         cursor.execute(statement, data)
         print("[ADD LENDER GROUP TRANSACTION] Successfully added group transaction")
     except db.Error as e:
         print(f"[ADD LENDER GROUP TRANSACTION] Error adding group transaction: {e}")
 
+def chooseLender(cursor: db.Cursor, group_id: int) -> int:
+    try:
+        # Retrieve the list of group members
+        statement = "SELECT user_id, username FROM user WHERE user_id IN (SELECT user_id FROM is_part_of WHERE group_id = %s AND user_id!=1)"
+        data = (group_id,)
+        cursor.execute(statement, data)
+        members = cursor.fetchall()
+
+        # Display the list of group members to the user
+        print("\n[LIST OF GROUP MEMBERS]")
+        for member in members:
+            user_id, username = member
+            print(f"ID: [{user_id}] {username}")
+
+        # Prompt the user to choose a lender
+        lender_id = None
+        while lender_id is None:
+            lender_input = input("\nEnter the ID of the lender: ")
+            try:
+                lender_id = int(lender_input)
+                if lender_id not in [member[0] for member in members]:
+                    print("Invalid lender ID. Please choose a valid lender ID.")
+                    lender_id = None
+            except ValueError:
+                print("Invalid input. Please enter a valid lender ID.")
+
+        return lender_id
+
+    except db.Error as e:
+        print(f"[CHOOSE LENDER] Error retrieving group members from the database: {e}")
+
+def addBorrowerGroupTransaction(cursor: db.Cursor, transaction_amount: float, transaction_date: str, isPaid: int, isGroupLoan: int, amountRemaining: float, dividedAmount: float, user_id: int, group_id: int) -> None:
+    try:
+        statement = "INSERT INTO transaction(transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, isGroupLoan, amountRemaining, dividedAmount, user_id, group_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %d, %d)"
+        data = (transaction_amount, transaction_date, "loan", 1, user_id, isPaid, isGroupLoan, amountRemaining, dividedAmount, 1, group_id) # user_id equal to 1 or the user who created the group transaction
+        cursor.execute(statement, data)
+        print("[ADD BORROWER GROUP TRANSACTION] Successfully added borrower group transaction")
+    except db.Error as e:
+        print(f"[ADD BORROWER GROUP TRANSACTION] Error adding borrower group transaction: {e}")
+
 # FUNCTION TO CREATE GROUP LOAN TRANSACTION
-    # [PROCESS for adding group transaction where user is the lender]
-    # find borrowers by getting members of the group excluding user
-    # update the outstanding balance of the borrowers (members of the group)
-    # set group balance of group to group_balance += transaction_amount
-    # add transaction to the table
 def createGroupTransaction(cursor: db.Cursor) -> None:
     # GROUP LOAN
     group_id = chooseGroup(cursor)
@@ -246,15 +270,34 @@ def createGroupTransaction(cursor: db.Cursor) -> None:
     userIsLender = get_user_is_lender()                 
     if userIsLender==1: # user is a lender
         lender = 1
+        
         memCount = getMemberCount(cursor, group_id)
-        print(memCount, "members")
         initialAmount = transaction_amount/(memCount-1)
         dividedAmount = round(initialAmount, 2)
         members = getGroupMembers(cursor, group_id, lender)
         updateMembersBalance(cursor, members, dividedAmount)
         updateGroupBalance(cursor, group_id, transaction_amount)
+        
         addLenderGroupTransaction(cursor, transaction_amount, transaction_date, isPaid, isGroupLoan, amountRemaining, dividedAmount, lender, group_id)
-    #else: # user is a borrower
+        transaction_id = cursor.lastrowid
+        addIsCreatedBy(cursor, transaction_id, 1, group_id)
+    else: # user is a borrower
+        lender = chooseLender(cursor, group_id) # ask user to choose lender by showing username of members of the group
+        
+        memCount = getMemberCount(cursor, group_id)
+        initialAmount = transaction_amount/(memCount-1)
+        dividedAmount = round(initialAmount, 2)
+        members = getGroupMembers(cursor, group_id, lender)
+        updateMembersBalance(cursor, members, dividedAmount)
+        updateGroupBalance(cursor, group_id, transaction_amount)
+        
+        addBorrowerGroupTransaction(cursor, transaction_amount, transaction_date, isPaid, isGroupLoan, amountRemaining, dividedAmount, lender, group_id)
+        transaction_id = cursor.lastrowid
+        addIsCreatedBy(cursor, transaction_id, 1, group_id)       
+        
+        
+        
+        
         
         
 
@@ -264,8 +307,24 @@ def createGroupTransaction(cursor: db.Cursor) -> None:
 # INSERT INTO transaction(transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, isGroupLoan, amountRemaining, dividedAmount, user_id, group_id)
 # VALUES(100, '2020-11-12', 'loan', 1, 1, 0, 1, 1, 1);            
             
+# def get_data(last_name):
+#     try:
+#         statement = "SELECT first_name, last_name FROM employees WHERE last_name=%s"
+#         data = (last_name,)
+#         cursor.execute(statement, data)
+#         for (first_name, last_name) in cursor:
+#             print(f"Successfully retrieved {first_name}, {last_name}")
+#     except database.Error as e:
+#         print(f"Error retrieving entry from the database: {e}")           
         
         
+        
+    # -----------------------------------------------------------------------    
+    # [PROCESS for adding group transaction where user is the lender]
+    # find borrowers by getting members of the group excluding user
+    # update the outstanding balance of the borrowers (members of the group)
+    # set group balance of group to group_balance += transaction_amount
+    # add transaction to the table
             
 
 # The addExpense function creates a single or group transaction
