@@ -12,7 +12,6 @@ def add_group(cursor: db.Cursor, conn: db.Connection) -> None:
         # Set the name of the group
         cursor.execute(
             "INSERT INTO `group`(group_name) VALUES(?);", (group_name,))
-        conn.commit()
 
         # Print all the friends in the database
         cursor.execute("SELECT * FROM user WHERE user.user_id != 1;")
