@@ -331,8 +331,6 @@ def search_expense(cursor: db.Cursor) -> None:
 
     transaction_id = get_int_input("Enter transaction id: ")
 
-    # join is made by.userid to user.user.id // join transaction.transaction_id  madeby.trsanctionid // join trsanction.lender to user.user_id
-
     try:
         cursor.execute(
             "SELECT transaction_id, transaction_date, amountRemaining FROM `transaction` WHERE user_id = 1 AND isLoan = true AND transaction_id = ?;", (transaction_id,))

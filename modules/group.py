@@ -24,6 +24,10 @@ def add_group(cursor: db.Cursor, conn: db.Connection) -> None:
             "INSERT INTO is_part_of(user_id, group_id) VALUES(1, ?);", (group_id,))
         add_friend_to_group(cursor, conn, group_id)
 
+        cursor.execute(
+            "UPDATE `group` SET num_of_members = num_of_members + 1 WHERE group_id = ?;", (group_id,))
+        conn.commit()
+
         print("\nSuccessfully added group to the database")
 
     except db.Error as e:
