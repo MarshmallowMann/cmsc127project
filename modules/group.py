@@ -113,13 +113,10 @@ def add_friend_to_group(cursor: db.Cursor, conn: db.Connection, group_id) -> Non
 
         else:
             try:
-                statement = "INSERT INTO is_part_of(user_id, group_id) VALUES(?, ?);"
-                data = (friendToAdd, group_id)
-                cursor.execute(statement, data)
-
-                statement = "UPDATE `group` SET num_of_members = num_of_members + 1 WHERE group_id = ?;"
-                data = (group_id,)
-                cursor.execute(statement, data)
+                cursor.execute(
+                    "INSERT INTO is_part_of(user_id, group_id) VALUES(?, ?);", (friendToAdd, group_id))
+                cursor.execute(
+                    "UPDATE `group` SET num_of_members = num_of_members + 1 WHERE group_id = ?;", (group_id,))
                 conn.commit()
 
                 anotherFriend = input(

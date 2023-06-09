@@ -98,8 +98,6 @@ def view_all_groups_with_balance(cursor: db.Cursor) -> None:
 
 
 def print_self(self: list) -> None:
-    # Convert array of tuples to array of lists
-    # friends = [list(friend) for friend in friends]
     print("=====================================")
     print("\t\tUser")
     print("=====================================")
