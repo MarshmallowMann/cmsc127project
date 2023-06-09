@@ -11,7 +11,7 @@ def add_friend(cursor: db.Cursor, connection: db.Connection) -> None:
         cursor.execute("INSERT INTO user (username, balance) VALUES (?, ?);",
                        (username, beginBalance))
         connection.commit()
-        print("Friend added successfully.")
+        print("\n[SUCCESS] Friend added successfully.")
 
     # If there is an error, prompt the error
     except db.Error as e:
@@ -72,6 +72,11 @@ def search_friend(cursor: db.Cursor, connection: db.Connection) -> None:
             "SELECT * FROM user WHERE username LIKE ?;", (f"%{username}%",))
         friends = cursor.fetchall()
 
+        # If there are no groups in the database, return None
+        if len(friends) <= 0:
+            print("\n[ERROR] Username Not Found.")
+            return None
+
     # If there is an error, prompt the error
     except db.Error as e:
         print(f"Error fetching data: {e}")
@@ -128,7 +133,7 @@ def get_string_input(prompt: str) -> str:
                 raise ValueError
             return text
         except ValueError:
-            print("Invalid input. Try again.")
+            print("\n[Invalid Input] Please Try Again.\n")
 
 
 # Int input validation
@@ -138,7 +143,7 @@ def get_int_input(prompt: str) -> int:
             num = int(input(prompt).strip())
             return num
         except ValueError:
-            print("Invalid input. Please try again.")
+            print("[Invalid Input] Please Try Again.\n")
 
 
 # Float input validation
@@ -153,15 +158,16 @@ def get_float_input(prompt: str) -> int:
                 raise ValueError
             return num
         except ValueError:
-            print("Invalid input. Please try again.")
+            print("[Invalid Input] Please Try Again.\n")
 
 
 # Print the friends in the database
 def print_users(friends: list) -> None:
-    print("=====================================")
-    print("\t\tFriends")
-    print("=====================================")
+    print()
+    # print("=====================================")
+    print("\n              FRIENDS")
+    # print("=====================================")
     print(tabulate(friends, headers=[
           "ID", "Username", "Balance"], tablefmt="rounded_grid"))
-    print("=====================================")
+    print()
     return None

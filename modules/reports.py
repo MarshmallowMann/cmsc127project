@@ -9,10 +9,10 @@ def view_all_expenses_within_month(cursor: db.Cursor) -> None:
 
     while True:
         # Get the month from the user
-        transaction_date = friend.get_int_input("Enter the month to view: ")
+        transaction_date = friend.get_int_input("Enter the Month to View [1-12]: ")
 
         if transaction_date < 1 or transaction_date > 12:
-            print("Invalid month.")
+            print("[ERROR] Invalid Month.\n")
             continue
 
         else:

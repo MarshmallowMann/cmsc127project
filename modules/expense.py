@@ -8,12 +8,8 @@ def getUsers(cursor: db.Cursor) -> None:
     try:
         statement = "SELECT username FROM user WHERE user_id != 1"
         cursor.execute(statement)
-        print("\n[Users]")
-        # iterate over the users
-        for i, row in enumerate(cursor):
-            username = row[0]
-            # start with the second user because the first user is the one using the app
-            print(f"[{i+2}] {username}")
+        friends = cursor.fetchall()
+        print_users(friends)
     except db.Error as e:
         print(f"Error retrieving users from the database: {e}")
 
@@ -35,7 +31,7 @@ def get_user_is_lender():
         elif user_is_lender == '2':
             user_is_lender = 2  # user is a borrower
         else:
-            print("\n[ERROR] Invalid Input. Please Choose 1 or 2.\n")
+            print("\n[ERROR] Invalid Input. Please Choose 1 or 2.")
     return user_is_lender
 
 
@@ -47,9 +43,9 @@ def chooseFriend(user_count) -> int:
             chosen_friend = int(
                 input("\nInput the number for the chosen borrower: "))
             if not (2 <= chosen_friend <= user_count):
-                print("\nInvalid input. Please enter a valid number for the borrower.")
+                print("\n[Invalid Input] Please enter a valid number for the borrower.")
         except ValueError:
-            print("\nInvalid input. Please enter a valid integer.\n")
+            print("\n[Invalid Input] Please enter a valid integer.\n")
     return chosen_friend
 
 
@@ -59,7 +55,7 @@ def get_int_input(prompt: str) -> int:
             num = int(input(prompt).strip())
             return num
         except ValueError:
-            print("Invalid input. Please try again.")
+            print("[Invalid Input] Please Try Again.\n")
 
 
 def get_float_input(prompt: str) -> int:
@@ -73,7 +69,7 @@ def get_float_input(prompt: str) -> int:
                 raise ValueError
             return num
         except ValueError:
-            print("Invalid input. Please try again.")
+            print("[Invalid Input] Please Try Again.\n")
 
 
 def addIsCreatedBy(cursor: db.Cursor, transaction_id, user_id, group_id) -> None:
@@ -125,9 +121,9 @@ def askAmount() -> float:
         try:
             transaction_amount = float(input("\nInput transaction amount: "))
             if not (1 <= transaction_amount <= 999999.99):
-                print("\nInvalid input. Please enter a value between 1 and 999999.99.\n")
+                print("\n[Invalid Input] Please enter a value between 1 and 999999.99")
         except ValueError:
-            print("\nInvalid input. Please enter a valid number.\n")
+            print("\n[Invalid Input] Please enter a valid number.")
     return transaction_amount
 
 
@@ -139,13 +135,10 @@ def getDate() -> str:
 
 def getGroups(cursor: db.Cursor) -> None:
     try:
-        statement = "SELECT group_name FROM `group`"
+        statement = "SELECT group_id, group_name FROM `group`"
         cursor.execute(statement)
-        print("[GROUPS]")
-        # iterate over the users
-        for i, row in enumerate(cursor):
-            groupname = row[0]
-            print(f"[{i+1}] {groupname}")  # show all groups
+        groups = cursor.fetchall()
+        print_groups_add_expense(groups)
     except db.Error as e:
         print(
             f"[GET ALL GROUPS] Error retrieving groups from the database: {e}")
@@ -168,15 +161,15 @@ def setGroupID(cursor: db.Cursor) -> int:
             data = (group_id,)
             cursor.execute(statement, data)
             if cursor.fetchone() is None:
-                print("\nInvalid input. Please enter a valid group id.\n")
+                print("\n[Invalid Input] Please Enter a Valid Group ID.\n")
                 group_id = None
         except ValueError:
-            print("\nInvalid input. Please enter a valid integer.\n")
+            print("\n[Invalid Input] Please Enter a Valid Integer.\n")
     return group_id
 
 
 def chooseGroup(cursor: db.Cursor) -> int:
-    print("\nChoose a group to transact with:")
+    print("\nChoose the Group ID to transact with:")
     getGroups(cursor)
     group_id = setGroupID(cursor)
     return group_id
@@ -256,10 +249,7 @@ def chooseLender(cursor: db.Cursor, group_id: int) -> int:
         members = cursor.fetchall()
 
         # Display the list of group members to the user
-        print("\n[LIST OF GROUP MEMBERS]")
-        for member in members:
-            user_id, username = member
-            print(f"ID: [{user_id}] {username}")
+        print_members(members)
 
         # Prompt the user to choose a lender
         lender_id = None
@@ -268,10 +258,10 @@ def chooseLender(cursor: db.Cursor, group_id: int) -> int:
             try:
                 lender_id = int(lender_input)
                 if lender_id not in [member[0] for member in members]:
-                    print("Invalid lender ID. Please choose a valid lender ID.")
+                    print("\n[Invalid Lender ID] Please Enter a Valid Lender ID.\n")
                     lender_id = None
             except ValueError:
-                print("Invalid input. Please enter a valid lender ID.")
+                print("\n[Invalid Input] Please Enter a Valid Lender ID.\n")
 
         return lender_id
 
@@ -348,9 +338,9 @@ def createGroupTransaction(cursor: db.Cursor) -> None:
 def add_expense(cursor: db.Cursor, connection: db.Connection) -> None:
     try:
         transaction_creator = None
-        while transaction_creator not in ['1', '2']:  # 1 = user, 2 = group
+        while transaction_creator not in ['1', '2', '0']:  # 1 = user, 2 = group
             transaction_creator = input(
-                "\nChoose Transaction Creator:\n[1] Single User Transaction\n[2] Group Transaction\nChoice: ")
+                "\n[Choose Transaction Creator]\n-----------------------------------------------\n[1] Single User Transaction\n[2] Group Transaction\n[0] Back\n-----------------------------------------------\nChoice: ")
             if transaction_creator == '1':  # user transaction
                 # input transaction amount
                 transaction_amount = askAmount()
@@ -390,9 +380,11 @@ def add_expense(cursor: db.Cursor, connection: db.Connection) -> None:
 
             elif transaction_creator=='2':  # group transaction (transaction_creator == 2)
                 createGroupTransaction(cursor)
-                
+            
+            elif transaction_creator == '0':
+                return None
             else:
-                print('\nInvalid Input. Please Choose 1 or 2.\n')
+                print('\n[Invalid Input] Please Choose 1 or 2.\n')
 
         connection.commit()
         print("[END] Transaction process has ended.")
@@ -433,6 +425,14 @@ def delete_expense(cursor: db.Cursor, conn: db.Connection) -> None:
 
 
 def search_expense(cursor: db.Cursor) -> None:
+    
+    cursor.execute("SELECT * FROM transaction")
+    expenses = cursor.fetchall()
+    
+    # If there are no groups in the database, return None
+    if len(expenses) <= 0:
+        print("There are no expenses in the database.")
+        return None
 
     transaction_id = get_int_input("Enter transaction id: ")
 
@@ -440,6 +440,7 @@ def search_expense(cursor: db.Cursor) -> None:
         cursor.execute(
             "SELECT transaction_id, transaction_date, amountRemaining FROM `transaction` WHERE user_id = 1 AND transaction_id = ?;", (transaction_id,))
         expenses = cursor.fetchall()
+        
 
     except db.Error as e:
         print(f"Error fetching data: {e}")
@@ -450,6 +451,14 @@ def search_expense(cursor: db.Cursor) -> None:
 
 
 def update_expense(cursor: db.Cursor, connection: db.Connection) -> None:
+    cursor.execute("SELECT * FROM transaction")
+    expenses = cursor.fetchall()
+    
+    # If there are no groups in the database, return None
+    if len(expenses) <= 0:
+        print("There are no expenses in the database.")
+        return None
+    
     print("""
     [1] Individual Settlement
     [2] Group Settlement
@@ -462,7 +471,7 @@ def update_expense(cursor: db.Cursor, connection: db.Connection) -> None:
     elif choice == 2:
         groupSettlement(cursor, connection, "settlement")
     else:
-        print("Invalid input. Please try again.")
+        print("\n[Invalid Input] Please Try Again.\n")
 
     return None
 
@@ -502,6 +511,39 @@ def print_groups(groups: list) -> int:
     print()
     return len(groups)
 
+def print_groups_add_expense(groups: list) -> int:
+    # SELECT user_id, transaction_id, transaction_amount, transaction_date, lender
+    print()
+    print("\t\tGROUPS")
+    if (len(groups) == 0):
+        print("There are no groups in the database yet.")
+    else:
+        print(tabulate(groups, headers=[
+            "Group Id", "Group Name"], tablefmt="rounded_grid"))
+    print()
+    return len(groups)
+
+def print_users(friends: list) -> int:
+    print()
+    print("\t\tFRIENDS")
+    if (len(friends) == 0):
+        print("There are no friends in the database yet.")
+    else:
+        print(tabulate(friends, headers=[
+            "Friend Id", "Friend Name"], tablefmt="rounded_grid"))
+    print()
+    return len(friends)
+
+def print_members(members: list) -> int:
+    print()
+    print("\tLIST OF GROUP MEMBERS")
+    if (len(members) == 0):
+        print("There are no other members in the group.")
+    else:
+        print(tabulate(members, headers=[
+            "Member Id", "Member Name"], tablefmt="rounded_grid"))
+    print()
+    return len(members)
 
 def individualSettlement(cursor: db.Cursor, connection: db.Connection, transaction_type: str) -> None:
     transaction_type = "settlement"
