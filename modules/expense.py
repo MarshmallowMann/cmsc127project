@@ -2,9 +2,6 @@ import mariadb as db
 from datetime import date
 from tabulate import tabulate
 
-def addExpense(cursor: db.Cursor, conn: db.Connection) -> None:
-    return None
-
 def getUsers(cursor: db.Cursor) -> None:
     try:
         statement = "SELECT username FROM user WHERE user_id != 1"
@@ -134,6 +131,14 @@ def getGroups(cursor: db.Cursor) -> None:
         print(f"[GET ALL GROUPS] Error retrieving groups from the database: {e}")    
     
 def setGroupID(cursor: db.Cursor) -> int:
+# Check if there are any groups in the database
+    cursor.execute("SELECT COUNT(*) FROM `group`")
+    group_count = cursor.fetchone()[0]
+
+    if group_count == 0:
+        print("\nThere are no groups created yet.\n")
+        return None # returns None if there are no groups created yet.
+    
     group_id = None
     while group_id is None:
         try:
@@ -153,16 +158,6 @@ def chooseGroup(cursor: db.Cursor) -> int:
     getGroups(cursor)
     group_id = setGroupID(cursor)
     return group_id
-
-# def get_data(last_name):
-#     try:
-#         statement = "SELECT first_name, last_name FROM employees WHERE last_name=%s"
-#         data = (last_name,)
-#         cursor.execute(statement, data)
-#         for (first_name, last_name) in cursor:
-#             print(f"Successfully retrieved {first_name}, {last_name}")
-#     except database.Error as e:
-#         print(f"Error retrieving entry from the database: {e}")   
 
 def getGroupMembers(cursor: db.Cursor, group_id, lender) -> list:
     try:
@@ -262,63 +257,40 @@ def addBorrowerGroupTransaction(cursor: db.Cursor, transaction_amount: float, tr
 def createGroupTransaction(cursor: db.Cursor) -> None:
     # GROUP LOAN
     group_id = chooseGroup(cursor)
-    transaction_amount = askAmount()
-    transaction_date = getDate()
-    isPaid = 0
-    isGroupLoan = 1
-    amountRemaining = transaction_amount # amount remaining to be paid set to transaction_amount
-    userIsLender = get_user_is_lender()                 
-    if userIsLender==1: # user is a lender
-        lender = 1
-        
-        memCount = getMemberCount(cursor, group_id)
-        initialAmount = transaction_amount/(memCount-1)
-        dividedAmount = round(initialAmount, 2)
-        members = getGroupMembers(cursor, group_id, lender)
-        updateMembersBalance(cursor, members, dividedAmount)
-        updateGroupBalance(cursor, group_id, transaction_amount)
-        
-        addLenderGroupTransaction(cursor, transaction_amount, transaction_date, isPaid, isGroupLoan, amountRemaining, dividedAmount, lender, group_id)
-        transaction_id = cursor.lastrowid
-        addIsCreatedBy(cursor, transaction_id, 1, group_id)
-    else: # user is a borrower
-        lender = chooseLender(cursor, group_id) # ask user to choose lender by showing username of members of the group
-        
-        memCount = getMemberCount(cursor, group_id)
-        initialAmount = transaction_amount/(memCount-1)
-        dividedAmount = round(initialAmount, 2)
-        members = getGroupMembers(cursor, group_id, lender)
-        updateMembersBalance(cursor, members, dividedAmount)
-        updateGroupBalance(cursor, group_id, transaction_amount)
-        
-        addBorrowerGroupTransaction(cursor, transaction_amount, transaction_date, isPaid, isGroupLoan, amountRemaining, dividedAmount, lender, group_id)
-        transaction_id = cursor.lastrowid
-        addIsCreatedBy(cursor, transaction_id, 1, group_id)       
-        
-        
-        
-        
-        
-        
-
+    if(group_id!=None): # will not run if there are no groups created yet
+        transaction_amount = askAmount()
+        transaction_date = getDate()
+        isPaid = 0
+        isGroupLoan = 1
+        amountRemaining = transaction_amount # amount remaining to be paid set to transaction_amount
+        userIsLender = get_user_is_lender()                 
+        if userIsLender==1: # user is a lender
+            lender = 1
             
+            memCount = getMemberCount(cursor, group_id)
+            initialAmount = transaction_amount/(memCount-1)
+            dividedAmount = round(initialAmount, 2)
+            members = getGroupMembers(cursor, group_id, lender)
+            updateMembersBalance(cursor, members, dividedAmount)
+            updateGroupBalance(cursor, group_id, transaction_amount)
             
-# [] Group Loan
-# INSERT INTO transaction(transaction_amount, transaction_date, transaction_type, isLoan, lender, isPaid, isGroupLoan, amountRemaining, dividedAmount, user_id, group_id)
-# VALUES(100, '2020-11-12', 'loan', 1, 1, 0, 1, 1, 1);            
+            addLenderGroupTransaction(cursor, transaction_amount, transaction_date, isPaid, isGroupLoan, amountRemaining, dividedAmount, lender, group_id)
+            transaction_id = cursor.lastrowid
+            addIsCreatedBy(cursor, transaction_id, 1, group_id)
+        else: # user is a borrower
+            lender = chooseLender(cursor, group_id) # ask user to choose lender by showing username of members of the group
             
-# def get_data(last_name):
-#     try:
-#         statement = "SELECT first_name, last_name FROM employees WHERE last_name=%s"
-#         data = (last_name,)
-#         cursor.execute(statement, data)
-#         for (first_name, last_name) in cursor:
-#             print(f"Successfully retrieved {first_name}, {last_name}")
-#     except database.Error as e:
-#         print(f"Error retrieving entry from the database: {e}")           
-        
-        
-        
+            memCount = getMemberCount(cursor, group_id)
+            initialAmount = transaction_amount/(memCount-1)
+            dividedAmount = round(initialAmount, 2)
+            members = getGroupMembers(cursor, group_id, lender)
+            updateMembersBalance(cursor, members, dividedAmount)
+            updateGroupBalance(cursor, group_id, transaction_amount)
+            
+            addBorrowerGroupTransaction(cursor, transaction_amount, transaction_date, isPaid, isGroupLoan, amountRemaining, dividedAmount, lender, group_id)
+            transaction_id = cursor.lastrowid
+            addIsCreatedBy(cursor, transaction_id, 1, group_id)                
+            
     # -----------------------------------------------------------------------    
     # [PROCESS for adding group transaction where user is the lender]
     # find borrowers by getting members of the group excluding user
@@ -327,8 +299,8 @@ def createGroupTransaction(cursor: db.Cursor) -> None:
     # add transaction to the table
             
 
-# The addExpense function creates a single or group transaction
-def addExpense(cursor: db.Cursor, connection: db.Connection) -> None: 
+# The add_expense function creates a single or group transaction
+def add_expense(cursor: db.Cursor, connection: db.Connection) -> None: 
     try:
         transaction_creator = None
         while transaction_creator not in ['1','2']: # 1 = user, 2 = group
@@ -371,15 +343,15 @@ def addExpense(cursor: db.Cursor, connection: db.Connection) -> None:
         print(f"Error adding transaction to the database: {e}")
     return None
 
-def deleteExpense(cursor: db.Cursor) -> None:
+def delete_expense(cursor: db.Cursor) -> None:
     return None
 
 
-def searchExpense(cursor: db.Cursor) -> None:
+def search_expense(cursor: db.Cursor) -> None:
     return None
 
 
-def updateExpense(cursor: db.Cursor) -> None:
+def update_expense(cursor: db.Cursor) -> None:
     return None
 
 
