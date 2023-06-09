@@ -21,7 +21,7 @@ def view_all_expenses_within_month(cursor: db.Cursor) -> None:
     try:
         # Fetch the expenses from the database
         cursor.execute(
-            "SELECT * FROM transaction WHERE MONTH(transaction_date) = ?;", (transaction_date,))
+            "SELECT transaction_id, transaction_amount, transaction_date, transaction_type, isLoan, lender, amountRemaining, dividedAmount, isSettlement, settledLoan, user_id, group_id FROM transaction WHERE MONTH(transaction_date) = ?;", (transaction_date,))
         expenses = cursor.fetchall()
 
         # If there are no groups in the database, return None
@@ -89,7 +89,7 @@ def view_all_expenses_with_group(cursor: db.Cursor) -> None:
     try:
         # Fetch the expenses from the database
         cursor.execute(
-            "SELECT * FROM transaction WHERE group_id = ?;", (group_id,))
+            "SELECT transaction_id, transaction_amount, transaction_date, transaction_type, isLoan, lender, amountRemaining, dividedAmount, isSettlement, settledLoan, user_id, group_id FROM transaction WHERE group_id = ?;", (group_id,))
         expenses = cursor.fetchall()
 
         # If there are no groups in the database, return None
@@ -205,16 +205,11 @@ def print_self(self: list) -> None:
     return None
 
 
-# Print expenses
 def print_expenses(expenses: list) -> None:
+    # SELECT user_id, transaction_id, transaction_amount, transaction_date, lender
     print("=====================================")
     print("\t\tExpenses")
-    print("=====================================")
-    print(tabulate(expenses, headers=[
-          "Transaction ID", "Transaction Amount", "Transaction Date",
-          "Trasanction Type", "isLoan", "lender",
-          "isGroupLoan", "amountRemaining", "dividedAmount",
-          "isSettlement", "settledLoan", "user_id", "group_id"
-          ], tablefmt="rounded_grid"))
+    print(tabulate(expenses, headers=["Transaction Id", "Transaction Amount", "Transaction Date", "Transaction Type",
+                                      "Is Loan", "Lender", "Amount Remaining", "Divided Amount", "isSettlement", "Settled Loan" "User ID", "Group ID"], tablefmt="rounded_grid"))
     print("=====================================")
     return None
