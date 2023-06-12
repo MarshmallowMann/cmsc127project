@@ -614,6 +614,161 @@ def individualSettlement(cursor: db.Cursor, connection: db.Connection, transacti
 
 
 def groupSettlement(cursor: db.Cursor, connection: db.Connection, transaction_type: str) -> None:
+    print(
+        """
+    [1] Settle Yourself
+    [2] Settle a Group Member
+    
+    [0] Back
+    """
+    )
+    choice = get_int_input("Enter your choice: ")
+
+    if choice == 1:
+        settle_user_group(cursor, connection, transaction_type)
+    elif choice == 2:
+        settle_group_member(cursor, connection, transaction_type)
+    elif choice == 0:
+        return None
+
+
+def settle_group_member(cursor: db.Cursor, connection: db.Connection, transaction_type: str) -> None:
+    transaction_type = "settlement"
+
+    # List all the groups with outstanding balance
+    try:
+        cursor.execute("SELECT DISTINCT is_created_by.group_id, group_name FROM is_created_by JOIN `group` ON is_created_by.group_id = `group`.group_id JOIN transaction t on is_created_by.transaction_id = t.transaction_id WHERE isLoan = 1 AND isPaid = 0 AND t.user_id = 1 AND isGroupLoan = 1;")
+        groups = cursor.fetchall()
+    except db.Error as e:
+        print(f"Error retrieving groups from the database: {e}")
+        return None
+
+    lenGroups = print_groups(groups)
+
+    if lenGroups == 0:
+        return None
+
+    group_id = get_int_input("Enter the group_id of the group to settle: ")
+
+    # Select the User to settle
+    try:
+        cursor.execute(
+            "SELECT user_id, username FROM user WHERE user_id IN (SELECT user_id FROM is_part_of WHERE group_id = ? AND user_id!=1);", (group_id,))
+        users = cursor.fetchall()
+        user_ids = [user[0] for user in users]
+    except db.Error as e:
+        print(f"Error retrieving users from the database: {e}")
+        return None
+
+    lenUsers = print_users(users)
+
+    if lenUsers == 0:
+        return None
+
+    user_id = 0
+    while user_id not in user_ids:
+        user_id = get_int_input(
+            "Enter the user_id of the user to settle (0 to exit): ")
+        if (lenUsers == 0):
+            return None
+        if (lenUsers not in user_ids):
+            print("Invalid user_id.")
+
+    # List all the loans in the group
+    try:
+        cursor.execute("SELECT transaction_id, user_id, transaction_amount, transaction_date, lender  FROM transaction  WHERE isLoan = 1 AND isPaid = 0 AND user_id = 1 AND isGroupLoan = 1 AND group_id = ? AND lender != ?;", (group_id, user_id))
+        loans = cursor.fetchall()
+        lenLoans = print_loans(loans)
+        loan_ids = [loan[0] for loan in loans]
+    except db.Error as e:
+        print(f"Error retrieving loans from the database: {e}")
+        return None
+
+    if (lenLoans == 0):
+        return None
+
+    toSettle = 0
+    while toSettle not in loan_ids:
+        toSettle = get_int_input(
+            "Enter the transaction_id of the loan to settle (0 to exit): ")
+        if (lenLoans == 0):
+            return None
+        if (lenLoans not in loan_ids):
+            print("Invalid transaction_id.")
+
+    cursor.execute(
+        "SELECT * FROM transaction WHERE transaction_id = ? AND isLoan = 1 AND isPaid = 0 AND user_id = 1 AND isGroupLoan = 1 AND group_id = ?;", (toSettle, group_id))
+    loan = cursor.fetchone()
+    if loan is None:
+        print("Invalid transaction_id.")
+        return None
+
+    # Cancel Transaction if user selected has already settled.
+    try:
+        cursor.execute(
+            "SELECT * FROM transaction WHERE isSettlement = 1 AND settledLoan = ? AND user_id = ?;", (loan[0], user_id))
+        if (cursor.fetchone() != None):
+            print("User has already settled this loan.")
+            return None
+    except db.Error as e:
+        print(f"Error finding existing settlement: {e}")
+        return None
+
+    # Create a new Settlement transaction
+    try:
+        cursor.execute("INSERT INTO transaction (transaction_amount, transaction_date, transaction_type, isSettlement, settledLoan, user_id, group_id) VALUES (?, ?, ?, ?, ?, ?, ?);",
+                       (loan[9], date.today(), transaction_type, 1, loan[0], user_id, loan[13]))
+    except db.Error as e:
+        print(f"Error adding transaction to the database: {e}")
+        return None
+
+    # Compute amount remaining
+    try:
+        cursor.execute(
+            "SELECT SUM(transaction_amount) FROM transaction WHERE isSettlement = 1 AND settledLoan = ?;", (loan[0],))
+        amount_paid = cursor.fetchone()[0]
+    except db.Error as e:
+        print(f"Error computing amount remaining:{e}")
+        return None
+
+    # Update the balance of  the group members
+    try:
+        balance = loan[9] * -1
+        cursor.execute(
+            "UPDATE user SET balance = balance + ? WHERE user_id = ?;", (balance, user_id))
+        cursor.execute(
+            "UPDATE `group` SET group_balance = group_balance + ? WHERE group_id = ?;", (balance, loan[13]))
+    except db.Error as e:
+        print(f"Error updating group balance: {e}")
+        return None
+
+    # Update amount remaining for the loan
+    try:
+        cursor.execute(
+            "UPDATE transaction SET amountRemaining = ? WHERE transaction_id = ?;", (loan[8] - loan[9], loan[0]))
+
+    except db.Error as e:
+        print(f"Error updating amount remaining: {e}")
+        return None
+
+    # Update isPaid for the loan
+    if (math.floor(loan[8] - loan[9]) <= 0):
+        try:
+            cursor.execute(
+                "UPDATE transaction SET isPaid = 1 WHERE transaction_id = ?;", (
+                    loan[0],)
+            )
+        except db.Error as e:
+            print(f"Error updating isPaid: {e}")
+
+    # Commit
+    connection.commit()
+    print("Successfully settled the loan.")
+
+    return None
+
+
+def settle_user_group(cursor: db.Cursor, connection: db.Connection, transaction_type: str) -> None:
     transaction_type = "settlement"
     try:
         # List all the groups with outstanding balance
@@ -628,20 +783,39 @@ def groupSettlement(cursor: db.Cursor, connection: db.Connection, transaction_ty
         group_id = get_int_input("Enter the group_id of the group to settle: ")
 
         # List all the loans in the group
-        cursor.execute("SELECT transaction_id, user_id, transaction_amount, transaction_date, lender  FROM transaction  WHERE isLoan = 1 AND isPaid = 0 AND user_id = 1 AND isGroupLoan = 1 AND group_id = ?;", (group_id,))
-        lenLoans = print_loans(cursor.fetchall())
+        cursor.execute("SELECT transaction_id, user_id, transaction_amount, transaction_date, lender  FROM transaction  WHERE isLoan = 1 AND isPaid = 0 AND user_id = 1 AND isGroupLoan = 1 AND group_id = ? AND lender != 1;", (group_id,))
+        loans = cursor.fetchall()
+        lenLoans = print_loans(loans)
+        loan_ids = [loan[0] for loan in loans]
 
         if (lenLoans == 0):
             return None
 
-        toSettle = get_int_input(
-            "Enter the transaction_id of the loan to settle: ")
+        toSettle = 0
+        while toSettle not in loan_ids:
+            toSettle = get_int_input(
+                "Enter the transaction_id of the loan to settle (0 to exit): ")
+            if (lenLoans == 0):
+                return None
+            if (lenLoans not in loan_ids):
+                print("Invalid transaction_id.")
 
         cursor.execute(
             "SELECT * FROM transaction WHERE transaction_id = ? AND isLoan = 1 AND isPaid = 0 AND user_id = 1 AND isGroupLoan = 1 AND group_id = ?;", (toSettle, group_id))
         loan = cursor.fetchone()
         if loan is None:
             print("Invalid transaction_id.")
+            return None
+
+        # Cancel Transaction if user selected has already settled.
+        try:
+            cursor.execute(
+                "SELECT * FROM transaction WHERE isSettlement = 1 AND settledLoan = ? AND user_id = 1;", (loan[0],))
+            if (cursor.fetchone() != None):
+                print("User has already settled this loan.")
+                return None
+        except db.Error as e:
+            print(f"Error finding existing settlement: {e}")
             return None
 
         # Create a new Settlement transaction
@@ -675,14 +849,14 @@ def groupSettlement(cursor: db.Cursor, connection: db.Connection, transaction_ty
         # Update amount remaining for the loan
         try:
             cursor.execute(
-                "UPDATE transaction SET amountRemaining = ? WHERE transaction_id = ?;", (loan[8] - amount_paid, loan[0]))
+                "UPDATE transaction SET amountRemaining = ? WHERE transaction_id = ?;", (loan[8] - loan[9], loan[0]))
 
         except db.Error as e:
             print(f"Error updating amount remaining: {e}")
             return None
 
         # Update isPaid for the loan
-        if (math.floor(loan[8] - amount_paid) == 0):
+        if (math.floor(loan[8] - loan[9]) <= 0):
             try:
                 cursor.execute(
                     "UPDATE transaction SET isPaid = 1 WHERE transaction_id = ?;", (
