@@ -33,7 +33,7 @@ def add_group(cursor: db.Cursor, conn: db.Connection) -> None:
             "UPDATE `group` SET num_of_members = num_of_members + 1 WHERE group_id = ?;", (group_id,))
         conn.commit()
 
-        print("\nSuccessfully added group to the database")
+        print("\n[SUCCESS] Successfully added group to the database.")
 
     # If there is an error, rollback the changes
     except db.Error as e:
