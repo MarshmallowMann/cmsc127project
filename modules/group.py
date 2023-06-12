@@ -33,7 +33,7 @@ def add_group(cursor: db.Cursor, conn: db.Connection) -> None:
             "UPDATE `group` SET num_of_members = num_of_members + 1 WHERE group_id = ?;", (group_id,))
         conn.commit()
 
-        print("\nSuccessfully added group to the database")
+        print("\nSuccessfully added group to the database.")
 
     # If there is an error, rollback the changes
     except db.Error as e:
@@ -161,7 +161,7 @@ def add_friend_to_group(cursor: db.Cursor, conn: db.Connection, group_id) -> Non
 
         # Make sure that user doens't add themselves to the group
         if friendToAdd == 1:
-            print("You cannot add yourself to the group\n")
+            print("You cannot add yourself to the group.\n")
             continue
 
         else:
@@ -169,6 +169,7 @@ def add_friend_to_group(cursor: db.Cursor, conn: db.Connection, group_id) -> Non
                 # Add a friend to the group and update the number of members in the group
                 cursor.execute(
                     "INSERT INTO is_part_of(user_id, group_id) VALUES(?, ?);", (friendToAdd, group_id))
+
                 try:
                     cursor.execute(
                         "UPDATE `group` SET num_of_members = num_of_members + 1 WHERE group_id = ?;", (group_id,))
@@ -179,6 +180,16 @@ def add_friend_to_group(cursor: db.Cursor, conn: db.Connection, group_id) -> Non
                 # Ask if the user wants to add another friend to the group
                 anotherFriend = input(
                     "\n[SUCCESS] Added Friend to the Group.\n\nDo you want to add another friend to the group? [y/n]: ")
+                
+                cursor.execute("SELECT * FROM user WHERE user.user_id != 1;")
+                friends = cursor.fetchall()
+
+                cursor.execute("SELECT num_of_members FROM `group` WHERE group_id = ?;", (group_id,))
+                members = cursor.fetchall()
+
+                if len(friends) == (members[0][0]):
+                    print("All friends are already added to the group.")
+                    return None
 
                 # If the user doesn't want to add another friend, break out of the loop
                 if anotherFriend.lower() == "n":
@@ -244,6 +255,6 @@ def print_groups(groups: list) -> None:
     print('\n')
     print("\t\t\t\tGROUPS")
     print(tabulate(groups, headers=[
-          "ID", "Group name", "Group Balance", "Number of Members"], tablefmt="rounded_grid"))
+          "ID", "Group Name", "Group Balance", "Number of Members"], tablefmt="rounded_grid"))
     print()
     return None
