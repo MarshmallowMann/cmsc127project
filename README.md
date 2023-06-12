@@ -1,5 +1,5 @@
 # Money Tracking App
-## Group 4
+## Group 2
 ## CMSC 127 ST6L
 * Araez, Danielle Lei R.  
 * Concepcion, Sean Kierby I.  
@@ -18,7 +18,7 @@ Meanwhile, the *delete expense* functionality enables the user to delete a paid 
   
 On the other hand, the *search expense* feature asks the user for the transaction ID of the expense. It shows the transaction amount, transaction date, transaction type (loan or settlement), and lender ID. If it is a friend transaction, it would show both the Lender and Borrower (User ID) IDs. If it is a group transaction, it would also display the Lender and Group ID, Amount Remaining to be paid to the lender, and Divided Amount, which is the equally divided amount to be paid by the members of the group to the lender, which is also a member inside the group. If the transaction is a settlement transaction, it would also show the settled loan (transaction ID).   
   
-The *update expense* feature allows the user to settle a loan transaction if the user is a borrower in a friend or group transaction. It automatically settles the total amount to be paid by the user to the lender. For a group transaction, it updates the amount remaining to be paid for that group loan. Whereas, it updates the status of the friend transaction to already paid as it was already settled. 
+The *update expense* feature allows the user to settle a loan transaction in a friend or group transaction. It automatically settles the total amount to be paid by the user to the lender. For a group transaction, it updates the amount remaining to be paid for that group loan. Whereas, it updates the status of the friend transaction to already paid as it was already settled. 
 
 An additional *edit expense* feature allows the user to edit the transaction amount of an unpaid loan transaction which automatically updates the outstanding balance of the user or members of the group. 
   
