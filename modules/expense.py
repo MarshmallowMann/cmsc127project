@@ -49,7 +49,19 @@ def chooseFriend(friend_ids) -> int:
             print("[ERROR] Not a valid Friend ID. Please try again.")
         except ValueError:
             print("[ERROR] Please enter a valid integer.")
-
+            
+def chooseLoan(loan_ids) -> int:
+    chosen_loan = None
+    # continue to ask user to input correct borrower number
+    while chosen_loan not in loan_ids:
+        try:
+            chosen_loan = int(
+                input("\nInput Loan ID to Edit Transaction Amount: "))
+            if chosen_loan in loan_ids:
+                return chosen_loan
+            print("[ERROR] Not a valid Loan ID. Please try again.")
+        except ValueError:
+            print("[ERROR] Please enter a valid integer.")
 
 def get_int_input(prompt: str) -> int:
     while True:
@@ -495,7 +507,7 @@ def print_loans(loans: list) -> int:
     if (len(loans) == 0):
         print("There are no loans with outstanding \nbalance.")
     else:
-        print(tabulate(loans, headers=["Transaction Id", "User Id",
+        print(tabulate(loans, headers=["Transaction ID", "User ID",
                                        "Transaction Amount", "Transaction Date", "Lender"], tablefmt="rounded_grid"))
     print()
     return len(loans)
@@ -505,11 +517,19 @@ def print_expenses(expenses: list) -> None:
     # SELECT user_id, transaction_id, transaction_amount, transaction_date, lender
     print()
     print("\n\t\tExpenses")
-    print(tabulate(expenses, headers=["Transaction Id", "Transaction Amount", "Transaction Date", "Transaction Type",
-                                      "Is Loan", "Lender", "Amount Remaining", "Divided Amount", "isSettlement", "Settled Loan", "User ID", "Group ID"], tablefmt="rounded_grid"))
+    print(tabulate(expenses, headers=["Transaction ID", "Transaction Amount", "Transaction Date", "Transaction Type",
+                                      "Is Loan", "Lender", "Amount Remaining", "Divided Amount", "Is Settlement", "Settled Loan", "User ID", "Group ID"], tablefmt="rounded_grid"))
     print()
     return None
 
+def print_expenses_edit(expenses: list) -> None:
+    # For Printing the Unpaid Single and Group Loan Transactions
+    print()
+    print("\n\t\tExpenses")
+    print(tabulate(expenses, headers=["Transaction ID", "Transaction Amount", "Transaction Date", "Transaction Type",
+                                      "Lender", "Is Paid", "Is Group Loan", "Amount Remaining", "Divided Amount", "Group ID"], tablefmt="rounded_grid"))
+    print()
+    return None
 
 def print_groups(groups: list) -> int:
     # SELECT user_id, transaction_id, transaction_amount, transaction_date, lender
@@ -701,6 +721,46 @@ def groupSettlement(cursor: db.Cursor, connection: db.Connection, transaction_ty
         return None
 
 
-# TODO @sean - loan amount remaining for group or individual loan. Can oldy edit group loan amt IFF no settlement has been made yet to that transaction.
+# TODO @danie - loan amount remaining for group or individual loan. Can only edit group loan amount IFF no settlement has been made yet to that transaction.
 def edit_expense(cursor: db.Cursor, connection: db.Connection) -> None:
+    try:
+        cursor.execute("SELECT transaction_id, transaction_amount, transaction_date, transaction_type, lender, isPaid, isGroupLoan, amountRemaining, dividedAmount, group_id FROM transaction WHERE (isGroupLoan=0 AND isLoan=1 AND isPaid=0) OR (isGroupLoan=1 AND isPaid=0 AND transaction_id NOT IN (SELECT l.transaction_id FROM transaction l JOIN transaction s ON l.transaction_id=s.settledLoan));")
+        loans = cursor.fetchall()
+        loan_ids = [loan[0] for loan in loans]
+      
+        # If there are no expneses groups in the database, return None
+        if len(loans) <= 0:
+            print("There are no unpaid expenses to edit in the database.")
+            return None
+
+    except db.Error as e:
+        print(f"Error fetching data: {e}")
+        return None
+
+    print_expenses_edit(loans)
+    transaction_id = chooseLoan(loan_ids) # Input and check if the transaction_id is valid
+
+    cursor.execute("SELECT isGroupLoan FROM transaction WHERE transaction_id = ?;", (transaction_id,))
+    loan = cursor.fetchone()
+    transaction_amount = askAmount()
+    
+    if loan[0] == 0: # If Loan is not a Group Loan (Single User/Friend Loan)
+        # edit transaction amount
+        
+        
+        
+        
+        
+    
+    
+    #else: 
+
+        
+    
+    
+    
+    
+
+    
+    
     return None
