@@ -562,15 +562,43 @@ def print_members(members: list) -> int:
 
 
 def individualSettlement(cursor: db.Cursor, connection: db.Connection, transaction_type: str) -> None:
+    print("""
+[1] Settle Main User
+[2] Settle On Behalf of Other User
+
+[0] Back    
+          """)
+
+    choice = get_int_input("Enter your choice: ")
+
+    if choice == 1:
+        settleMainUser(cursor, connection, transaction_type)
+    elif choice == 2:
+        settleOtherUser(cursor, connection, transaction_type)
+    elif choice == 0:
+        return None
+
+
+def settleMainUser(cursor: db.Cursor, connection: db.Connection, transaction_type: str) -> None:
     transaction_type = "settlement"
     try:
         cursor.execute(
             "SELECT transaction_id, user_id, transaction_amount, transaction_date, lender  FROM transaction  WHERE isLoan = 1 AND isPaid = 0 AND user_id = 1 AND isGroupLoan = 0;")
-        lenLoans = print_loans(cursor.fetchall())
-        if lenLoans == 0:
+        loans = cursor.fetchall()
+        lenLoans = print_loans(loans)
+        loan_ids = [loan[0] for loan in loans]
+
+        if (lenLoans == 0):
             return None
-        toSettle = get_int_input(
-            "Enter the transaction_id of the loan to settle: ")
+
+        toSettle = 0
+        while toSettle not in loan_ids:
+            toSettle = get_int_input(
+                "Enter the transaction_id of the loan to settle (0 to exit): ")
+            if (lenLoans == 0):
+                return None
+            if (lenLoans not in loan_ids):
+                print("Invalid transaction_id.")
 
         cursor.execute(
             "SELECT * FROM transaction WHERE transaction_id = ? AND isLoan = 1 AND isPaid = 0 AND user_id = 1;", (toSettle,))
@@ -599,6 +627,93 @@ def individualSettlement(cursor: db.Cursor, connection: db.Connection, transacti
         try:
             cursor.execute(
                 "UPDATE user SET balance = balance + ? WHERE user_id = ?;", (balance, 1))
+        except db.Error as e:
+            print(f"Error updating user balance: {e}")
+            return None
+
+        # Commit
+        connection.commit()
+        print("Successfully settled the loan.")
+        return None
+
+    except db.Error as e:
+        print(f"Error retrieving loans from the database: {e}")
+        return None
+
+
+def settleOtherUser(cursor: db.Cursor, connection: db.Connection, transaction_type: str) -> None:
+    transaction_type = "settlement"
+
+    # Select User to Settle
+    try:
+        cursor.execute(
+            "SELECT user_id, username FROM user WHERE user_id != 1 AND user_id IN (SELECT user_id FROM transaction WHERE isLoan = 1 and isPaid = 0 AND isGroupLoan = 0);")
+        users = cursor.fetchall()
+        user_ids = [user[0] for user in users]
+    except db.Error as e:
+        print(f"Error retrieving users from the database: {e}")
+        return None
+
+    lenUsers = print_users(users)
+
+    if lenUsers == 0:
+        return None
+
+    user_id = 0
+    while user_id not in user_ids:
+        user_id = get_int_input(
+            "Enter the user_id of the user to settle (0 to exit): ")
+        if (lenUsers == 0):
+            return None
+        if (lenUsers not in user_ids):
+            print("Invalid user_id.")
+
+    try:
+        cursor.execute(
+            "SELECT transaction_id, user_id, transaction_amount, transaction_date, lender  FROM transaction  WHERE isLoan = 1 AND isPaid = 0 AND user_id = ? AND isGroupLoan = 0;", (user_id,))
+        loans = cursor.fetchall()
+        lenLoans = print_loans(loans)
+        loan_ids = [loan[0] for loan in loans]
+
+        if (lenLoans == 0):
+            return None
+
+        toSettle = 0
+        while toSettle not in loan_ids:
+            toSettle = get_int_input(
+                "Enter the transaction_id of the loan to settle (0 to exit): ")
+            if (lenLoans == 0):
+                return None
+            if (lenLoans not in loan_ids):
+                print("Invalid transaction_id.")
+
+        cursor.execute(
+            "SELECT * FROM transaction WHERE transaction_id = ? AND isLoan = 1 AND isPaid = 0 AND user_id = ?;", (toSettle, user_id))
+        loan = cursor.fetchone()
+        if loan is None:
+            print("Invalid transaction_id.")
+            return None
+
+        # Create a new Settlement transaction
+        try:
+            cursor.execute("INSERT INTO transaction (transaction_amount, transaction_date, transaction_type, isSettlement, settledLoan, user_id) VALUES (?, ?, ?, ?, ?, ?);",
+                           (loan[1], date.today(), transaction_type, 1, loan[0], user_id))
+        except db.Error as e:
+            print(f"Error adding transaction to the database: {e}")
+            return None
+        # Mark the loan transaction as paid
+        try:
+            cursor.execute(
+                "UPDATE transaction SET isPaid = 1 WHERE transaction_id = ?;", (toSettle,))
+        except db.Error as e:
+            print(f"Error updating transaction: {e}")
+            return None
+        # Update the balance of the borrower
+        balance = loan[1] * -1
+
+        try:
+            cursor.execute(
+                "UPDATE user SET balance = balance + ? WHERE user_id = ?;", (balance, user_id))
         except db.Error as e:
             print(f"Error updating user balance: {e}")
             return None
