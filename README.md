@@ -47,7 +47,7 @@ For generating reports, the user is asked to input the type of report to be gene
   
 * After creating the database, the user shall type `python main.py` to run the application.    
   
-* 
+* A main menu will be shown which displays the options for the user to choose from. The user shall input the number of the option to be chosen, indicating the particular features of the application. 
   
 * To quit the application, the user must be at the main menu of the app so that the `[0] Exit` option would be shown. Typing `0` as the choice would end the program.      
   
