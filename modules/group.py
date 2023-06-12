@@ -33,7 +33,7 @@ def add_group(cursor: db.Cursor, conn: db.Connection) -> None:
             "UPDATE `group` SET num_of_members = num_of_members + 1 WHERE group_id = ?;", (group_id,))
         conn.commit()
 
-        print("\n[SUCCESS] Successfully added group to the database.")
+        print("\nSuccessfully added group to the database")
 
     # If there is an error, rollback the changes
     except db.Error as e:
@@ -155,6 +155,8 @@ def update_group(cursor: db.Cursor, conn: db.Connection) -> None:
 # Add a friend to a group
 def add_friend_to_group(cursor: db.Cursor, conn: db.Connection, group_id) -> None:
 
+    non_user_members_num = 0
+
     while True:
         # Ask for the user id to add to the group
         friendToAdd = get_int_input("Enter user id to add to group: ")
@@ -169,6 +171,7 @@ def add_friend_to_group(cursor: db.Cursor, conn: db.Connection, group_id) -> Non
                 # Add a friend to the group and update the number of members in the group
                 cursor.execute(
                     "INSERT INTO is_part_of(user_id, group_id) VALUES(?, ?);", (friendToAdd, group_id))
+                non_user_members_num = non_user_members_num + 1
                 try:
                     cursor.execute(
                         "UPDATE `group` SET num_of_members = num_of_members + 1 WHERE group_id = ?;", (group_id,))
@@ -179,6 +182,13 @@ def add_friend_to_group(cursor: db.Cursor, conn: db.Connection, group_id) -> Non
                 # Ask if the user wants to add another friend to the group
                 anotherFriend = input(
                     "\n[SUCCESS] Added Friend to the Group.\n\nDo you want to add another friend to the group? [y/n]: ")
+                
+                cursor.execute("SELECT * FROM user WHERE user.user_id != 1;")
+                friends = cursor.fetchall()
+
+                if len(friends) == (non_user_members_num):
+                    print("All friends are already added to the group")
+                    return None
 
                 # If the user doesn't want to add another friend, break out of the loop
                 if anotherFriend.lower() == "n":

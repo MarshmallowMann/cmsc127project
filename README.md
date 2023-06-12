@@ -51,11 +51,39 @@ For generating reports, the user is asked to input the type of report to be gene
   
 * To quit the application, the user must be at the main menu of the app so that the `[0] Exit` option would be shown. Typing `0` as the choice would end the program.      
   
-## Screenshots  
-  
+## Screenshots
+### Program Menus
+* Main Menu  
+![Alt text](../../Documents/127%20main%20menu.PNG) 
 
+* Expense Menu
+![Alt text](../../Documents/127%20expense%20menu.PNG)
 
-## Steps for Creating a Python Virtual Environment  
+* Friend Menu
+![Alt text](../../Documents/127%20friend%20menu.PNG)
+
+* Group Menu
+![Alt text](../../Documents/127%20group%20menu.PNG)
+
+* Reports Menu
+![Alt text](../../Documents/127%20reports%20menu.PNG)
+
+### Simulations
+* Creating a Transaction Simulation
+![Alt text](../../Documents/127%20transaction%20simulation.PNG)
+
+* Add a Friend Simulation
+![Alt text](../../Documents/127%20adding%20friend.PNG)
+
+* Creating a Group Simulation
+![Alt text](../../Documents/127%20adding%20group.PNG)
+
+### Generating Reports
+* Viewing Transactions Made within a Month
+![Alt text](../../Documents/127%20generating%20report.PNG)
+
+* Viewing All Groups 
+![Alt text](../../Documents/127%20generating%20report%202.PNG)
   
 # Installation  
 1. Clone the repository
