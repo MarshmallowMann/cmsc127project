@@ -111,7 +111,7 @@ def updateUserBalance(cursor: db.Cursor, user_id, transaction_amount) -> None:
         statement = "UPDATE user SET balance = balance + %s WHERE user_id = %s"
         data = (transaction_amount, user_id)
         cursor.execute(statement, data)
-        #print("[USER UPDATE BALANCE] Successfully updated user (borrower) balance")
+        # print("[USER UPDATE BALANCE] Successfully updated user (borrower) balance")
     except db.Error as e:
         print(
             f"[USER UPDATE BALANCE] Error updating user (borrower) balance: {e}")
@@ -123,7 +123,8 @@ def askAmount() -> float:
         try:
             transaction_amount = float(input("\nInput transaction amount: "))
             if not (1 <= transaction_amount <= 999999.99):
-                print("\n[Invalid Input] Please enter a value between 1 and 999999.99")
+                print(
+                    "\n[Invalid Input] Please enter a value between 1 and 999999.99")
         except ValueError:
             print("\n[Invalid Input] Please enter a valid number.")
     return transaction_amount
@@ -186,7 +187,7 @@ def getGroupMembers(cursor: db.Cursor, group_id, lender) -> list:
         for row in cursor:
             members.append(row[0])
 
-        #print(f"[GET GROUP MEMBERS] Successfully retrieved group members from the database.")
+        # print(f"[GET GROUP MEMBERS] Successfully retrieved group members from the database.")
         return members
     except db.Error as e:
         print(
@@ -211,7 +212,7 @@ def updateMembersBalance(cursor: db.Cursor, members: list, dividedAmount: float)
         for member in members:
             data = (dividedAmount, member)
             cursor.execute(statement, data)
-        #print("[USER UPDATE BALANCE] Successfully updated user (borrower) balance")
+        # print("[USER UPDATE BALANCE] Successfully updated user (borrower) balance")
     except db.Error as e:
         print(
             f"[USER UPDATE BALANCE] Error updating user (borrower) balance: {e}")
@@ -222,7 +223,7 @@ def updateGroupBalance(cursor: db.Cursor, group_id: int, transaction_amount: flo
         statement = "UPDATE `group` SET group_balance = group_balance + %s WHERE group_id = %s"
         data = (transaction_amount, group_id)
         cursor.execute(statement, data)
-        #print("[GROUP UPDATE BALANCE] Successfully updated group balance")
+        # print("[GROUP UPDATE BALANCE] Successfully updated group balance")
     except db.Error as e:
         print(f"[GROUP UPDATE BALANCE] Error updating group balance: {e}")
 
@@ -235,7 +236,7 @@ def addLenderGroupTransaction(cursor: db.Cursor, transaction_amount: float, tran
         data = (transaction_amount, transaction_date, "loan", 1, user_id, isPaid,
                 isGroupLoan, amountRemaining, dividedAmount, user_id, group_id)
         cursor.execute(statement, data)
-        #print("[ADD LENDER GROUP TRANSACTION] Successfully added group transaction")
+        # print("[ADD LENDER GROUP TRANSACTION] Successfully added group transaction")
     except db.Error as e:
         print(
             f"[ADD LENDER GROUP TRANSACTION] Error adding group transaction: {e}")
@@ -259,7 +260,8 @@ def chooseLender(cursor: db.Cursor, group_id: int) -> int:
             try:
                 lender_id = int(lender_input)
                 if lender_id not in [member[0] for member in members]:
-                    print("\n[Invalid Lender ID] Please Enter a Valid Lender ID.\n")
+                    print(
+                        "\n[Invalid Lender ID] Please Enter a Valid Lender ID.\n")
                     lender_id = None
             except ValueError:
                 print("\n[Invalid Input] Please Enter a Valid Lender ID.\n")
@@ -277,7 +279,7 @@ def addBorrowerGroupTransaction(cursor: db.Cursor, transaction_amount: float, tr
         data = (transaction_amount, transaction_date, "loan", 1, user_id, isPaid, isGroupLoan, amountRemaining,
                 dividedAmount, 1, group_id)  # user_id equal to 1 or the user who created the group transaction
         cursor.execute(statement, data)
-        #print("[ADD BORROWER GROUP TRANSACTION] Successfully added borrower group transaction")
+        # print("[ADD BORROWER GROUP TRANSACTION] Successfully added borrower group transaction")
     except db.Error as e:
         print(
             f"[ADD BORROWER GROUP TRANSACTION] Error adding borrower group transaction: {e}")
@@ -338,7 +340,8 @@ def createGroupTransaction(cursor: db.Cursor) -> None:
 def add_expense(cursor: db.Cursor, connection: db.Connection) -> None:
     try:
         transaction_creator = None
-        while transaction_creator not in ['1', '2', '0']:  # 1 = user, 2 = group
+        # 1 = user, 2 = group
+        while transaction_creator not in ['1', '2', '0']:
             transaction_creator = input(
                 "\n[Choose Transaction Creator]\n-----------------------------------------------\n[1] Single User Transaction\n[2] Group Transaction\n[0] Back\n-----------------------------------------------\nChoice: ")
             if transaction_creator == '1':  # user transaction
@@ -358,8 +361,8 @@ def add_expense(cursor: db.Cursor, connection: db.Connection) -> None:
                     print("Choose a Borrower:")
                     # get the user count using the getUsers() function
                     friend_ids = getUsers(cursor)
-                    
-                    if (friend_ids == None): 
+
+                    if (friend_ids == None):
                         print("[ERROR] No Friends")
                         return
                     # get the chosen friend using the chooseFriend() function
@@ -375,8 +378,8 @@ def add_expense(cursor: db.Cursor, connection: db.Connection) -> None:
                     print("Choose a Lender:")
                     # get the user count using the getUsers() function
                     friend_ids = getUsers(cursor)
-                    
-                    if (friend_ids == None): 
+
+                    if (friend_ids == None):
                         print("[Error] No Friends")
                         return
                     # get the chosen friend using the chooseFriend() function
@@ -386,9 +389,10 @@ def add_expense(cursor: db.Cursor, connection: db.Connection) -> None:
                     # update user balance of borrower
                     updateUserBalance(cursor, user_id, transaction_amount)
 
-            elif transaction_creator=='2':  # group transaction (transaction_creator == 2)
+            # group transaction (transaction_creator == 2)
+            elif transaction_creator == '2':
                 createGroupTransaction(cursor)
-            
+
             elif transaction_creator == '0':
                 return None
             else:
@@ -436,7 +440,7 @@ def search_expense(cursor: db.Cursor) -> None:
     try:
         cursor.execute("SELECT * FROM transaction")
         expenses = cursor.fetchall()
-        
+
         # If there are no groups in the database, return None
         if len(expenses) <= 0:
             print("There are no expenses in the database.")
@@ -458,12 +462,12 @@ def update_expense(cursor: db.Cursor, connection: db.Connection) -> None:
     try:
         cursor.execute("SELECT * FROM transaction")
         expenses = cursor.fetchall()
-        
+
         # If there are no groups in the database, return None
         if len(expenses) <= 0:
             print("There are no expenses in the database.")
             return None
-        
+
         print("""
         [1] Individual Settlement
         [2] Group Settlement
@@ -519,6 +523,7 @@ def print_groups(groups: list) -> int:
     print()
     return len(groups)
 
+
 def print_groups_add_expense(groups: list) -> int:
     # SELECT user_id, transaction_id, transaction_amount, transaction_date, lender
     print()
@@ -531,6 +536,7 @@ def print_groups_add_expense(groups: list) -> int:
     print()
     return len(groups)
 
+
 def print_users(friends: list) -> int:
     print()
     print("\t\tFRIENDS")
@@ -542,6 +548,7 @@ def print_users(friends: list) -> int:
     print()
     return len(friends)
 
+
 def print_members(members: list) -> int:
     print()
     print("\n     LIST OF GROUP MEMBERS")
@@ -552,6 +559,7 @@ def print_members(members: list) -> int:
             "Member Id", "Member Name"], tablefmt="rounded_grid"))
     print()
     return len(members)
+
 
 def individualSettlement(cursor: db.Cursor, connection: db.Connection, transaction_type: str) -> None:
     transaction_type = "settlement"
@@ -691,3 +699,8 @@ def groupSettlement(cursor: db.Cursor, connection: db.Connection, transaction_ty
     except db.Error as e:
         print(f"Error retrieving loans from the database: {e}")
         return None
+
+
+# TODO @sean - loan amount remaining for group or individual loan. Can oldy edit group loan amt IFF no settlement has been made yet to that transaction.
+def edit_expense(cursor: db.Cursor, connection: db.Connection) -> None:
+    return None
