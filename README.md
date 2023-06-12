@@ -54,36 +54,64 @@ For generating reports, the user is asked to input the type of report to be gene
 ## Screenshots
 ### Program Menus
 * Main Menu  
-![Alt text](../../Documents/127%20main%20menu.PNG) 
+
+![127 main menu](https://github.com/MarshmallowMann/cmsc127project/assets/125255946/67d3638c-22da-4dad-90cb-7ba4a6e5e704)
+
 
 * Expense Menu
-![Alt text](../../Documents/127%20expense%20menu.PNG)
+
+![127 expense menu](https://github.com/MarshmallowMann/cmsc127project/assets/125255946/af54a636-fe5c-4143-ae28-8b40b8e604eb)
+
 
 * Friend Menu
-![Alt text](../../Documents/127%20friend%20menu.PNG)
+
+![127 friend menu](https://github.com/MarshmallowMann/cmsc127project/assets/125255946/f0b957e5-f68a-4f3a-bf68-06365c42fd61)
+
 
 * Group Menu
-![Alt text](../../Documents/127%20group%20menu.PNG)
+
+![127 group menu](https://github.com/MarshmallowMann/cmsc127project/assets/125255946/3a59c800-1120-4879-b0c8-a3a5d63e63f9)
+
 
 * Reports Menu
-![Alt text](../../Documents/127%20reports%20menu.PNG)
+
+![127 reports menu](https://github.com/MarshmallowMann/cmsc127project/assets/125255946/bfd65eae-48ba-4380-b747-dcc91a650a9e)
+
 
 ### Simulations
 * Creating a Transaction Simulation
-![Alt text](../../Documents/127%20transaction%20simulation.PNG)
 
-* Add a Friend Simulation
-![Alt text](../../Documents/127%20adding%20friend.PNG)
+![127 transaction simulation](https://github.com/MarshmallowMann/cmsc127project/assets/125255946/348065d4-845a-45a7-992b-4bfe2fadc3b4)
+
+
+* Adding a Friend Simulation
+
+![127 adding friend](https://github.com/MarshmallowMann/cmsc127project/assets/125255946/1e3222d9-91b3-4994-9322-c5a189873966)
+
 
 * Creating a Group Simulation
-![Alt text](../../Documents/127%20adding%20group.PNG)
+
+![127 adding group](https://github.com/MarshmallowMann/cmsc127project/assets/125255946/1570311e-0b74-4454-a02e-f235804b4f3d)
+
 
 ### Generating Reports
-* Viewing Transactions Made within a Month
-![Alt text](../../Documents/127%20generating%20report.PNG)
+* Viewing Transaction/s Made within a Month
+
+![127 generating report](https://github.com/MarshmallowMann/cmsc127project/assets/125255946/63d205f7-377f-42df-873a-9153327d8904)
+
+
+* Viewing Transaction/s Made with a Friend
+
+![127 generating report 3](https://github.com/MarshmallowMann/cmsc127project/assets/125255946/52d29f19-d81b-4815-b34c-2759d6d93de3)
+
+
 
 * Viewing All Groups 
-![Alt text](../../Documents/127%20generating%20report%202.PNG)
+
+![127 generating report 2](https://github.com/MarshmallowMann/cmsc127project/assets/125255946/97f30ed9-f9f7-4177-833c-f4baf18b19e9)
+
+
+
   
 # Installation  
 1. Clone the repository
