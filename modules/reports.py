@@ -27,7 +27,7 @@ def view_all_expenses_within_month(cursor: db.Cursor) -> None:
 
         # If there are no groups in the database, return None
         if len(expenses) <= 0:
-            print("There are no expenses in the database.")
+            print("There are no expenses made within the specified month in the database.")
             return None
 
         # Print the expenses
@@ -71,7 +71,7 @@ def view_all_expenses_made_with_friend(cursor: db.Cursor) -> None:
 
         # Check if user has any transaction with the selected friend
         if len(expenses) <= 0:
-            print("There is no transaction made with this friend.")
+            print("There are no transactions made with this friend.")
             return None
         
         # Print all the friends in the database

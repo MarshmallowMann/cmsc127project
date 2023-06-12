@@ -33,7 +33,7 @@ def add_group(cursor: db.Cursor, conn: db.Connection) -> None:
             "UPDATE `group` SET num_of_members = num_of_members + 1 WHERE group_id = ?;", (group_id,))
         conn.commit()
 
-        print("\nSuccessfully added group to the database")
+        print("\nSuccessfully added group to the database.")
 
     # If there is an error, rollback the changes
     except db.Error as e:
@@ -161,7 +161,7 @@ def add_friend_to_group(cursor: db.Cursor, conn: db.Connection, group_id) -> Non
 
         # Make sure that user doens't add themselves to the group
         if friendToAdd == 1:
-            print("You cannot add yourself to the group\n")
+            print("You cannot add yourself to the group.\n")
             continue
 
         else:
@@ -188,7 +188,7 @@ def add_friend_to_group(cursor: db.Cursor, conn: db.Connection, group_id) -> Non
                 members = cursor.fetchall()
 
                 if len(friends) == (members[0][0]):
-                    print("All friends are already added to the group")
+                    print("All friends are already added to the group.")
                     return None
 
                 # If the user doesn't want to add another friend, break out of the loop
