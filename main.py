@@ -110,6 +110,7 @@ def print_expense_menu(cur: db.Cursor, con: db.Connection) -> None:
 [2] Delete an Expense
 [3] Search an Expense
 [4] Update an Expense
+[5] Edit an Expense
 -----------------------------------------------
 [0] Back     
 """)
@@ -122,9 +123,10 @@ def print_expense_menu(cur: db.Cursor, con: db.Connection) -> None:
         expense.delete_expense(cur, con)
     elif choice == 3:
         expense.search_expense(cur)
-
     elif choice == 4:
         expense.update_expense(cur, con)
+    elif choice == 5:
+        expense.edit_expense(cur, con)
     elif choice == 0:
         return None
 
