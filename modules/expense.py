@@ -577,7 +577,7 @@ def print_users(friends: list) -> int:
     print()
     print("\t\tFRIENDS")
     if (len(friends) == 0):
-        print("There are no friends in the database yet.")
+        print("No Friends Found.")
     else:
         print(tabulate(friends, headers=[
             "Friend Id", "Friend Name"], tablefmt="rounded_grid"))
@@ -701,7 +701,7 @@ def settleOtherUser(cursor: db.Cursor, connection: db.Connection, transaction_ty
             "Enter the user_id of the user to settle (0 to exit): ")
         if (lenUsers == 0):
             return None
-        if (lenUsers not in user_ids):
+        if (user_id not in user_ids):
             print("Invalid user_id.")
 
     try:
@@ -720,7 +720,7 @@ def settleOtherUser(cursor: db.Cursor, connection: db.Connection, transaction_ty
                 "Enter the transaction_id of the loan to settle (0 to exit): ")
             if (lenLoans == 0):
                 return None
-            if (lenLoans not in loan_ids):
+            if (toSettle not in loan_ids):
                 print("Invalid transaction_id.")
 
         cursor.execute(

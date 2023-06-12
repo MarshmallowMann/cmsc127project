@@ -255,6 +255,6 @@ def print_groups(groups: list) -> None:
     print('\n')
     print("\t\t\t\tGROUPS")
     print(tabulate(groups, headers=[
-          "ID", "Group name", "Group Balance", "Number of Members"], tablefmt="rounded_grid"))
+          "ID", "Group Name", "Group Balance", "Number of Members"], tablefmt="rounded_grid"))
     print()
     return None
