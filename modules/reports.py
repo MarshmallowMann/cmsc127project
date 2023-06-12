@@ -67,16 +67,21 @@ def view_all_expenses_made_with_friend(cursor: db.Cursor) -> None:
         # Fetch the user's balance from the database
         cursor.execute(
             "SELECT transaction_id, transaction_amount, transaction_date, transaction_type, isLoan, lender, amountRemaining, dividedAmount, isSettlement, settledLoan, user_id, group_id FROM transaction WHERE (user_id=1 AND lender=?) OR (lender=1 AND user_id=?) ", (friend_id, friend_id,))
-        friends = cursor.fetchall()
+        expenses = cursor.fetchall()
+
+        # Check if user has any transaction with the selected friend
+        if len(expenses) <= 0:
+            print("There is no transaction made with this friend.")
+            return None
+        
+        # Print all the friends in the database
+        print_expenses(expenses)
+        return None
 
     # If there is an error, prompts the error
     except db.Error as e:
         print(f"Error fetching data: {e}")
         return None
-
-    # Print all the friends in the database
-    print_expenses(friends)
-    return None
 
 
 # Print all the expenses made with a group
@@ -105,7 +110,7 @@ def view_all_expenses_with_group(cursor: db.Cursor) -> None:
 
         # If there are no groups in the database, return None
         if len(expenses) <= 0:
-            print("There are no expenses in the database.")
+            print("There are no expenses made with this group.")
             return None
 
         # Print the expenses
@@ -126,14 +131,15 @@ def view_current_balance(cursor: db.Cursor) -> None:
         cursor.execute("SELECT * FROM user WHERE user_id = 1;")
         self = cursor.fetchall()
 
+        # Print the user's balance
+        print_self(self)
+        return None
+
     # If there is an error, prompts the error
     except db.Error as e:
         print(f"Error fetching data: {e}")
         return None
 
-    # Print the user's balance
-    print_self(self)
-    return None
 
 
 # Print all the friends with balance in the database
